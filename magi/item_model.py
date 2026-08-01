@@ -1439,8 +1439,8 @@ class MagiModel(BaseMagiModel):
 # Utility Models
 
 class UserImage(BaseMagiModel):
-    image = models.ImageField(upload_to=uploadToRandom('user_images'))
-    _thumbnail_image = models.ImageField(null=True, upload_to=uploadThumb('user_images'))
+    image = models.ImageField(upload_to=uploadToRandom('user_images'), max_length=255)
+    _thumbnail_image = models.ImageField(null=True, upload_to=uploadThumb('user_images'), max_length=255)
     name = models.CharField(_('Title'), max_length=100, null=True)
 
     def __unicode__(self):

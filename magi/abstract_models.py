@@ -322,8 +322,8 @@ class MobileGameAccount(BaseAccount):
 
     screenshot = models.ImageField(
         _('Screenshot'), help_text=_('In-game profile screenshot'),
-        upload_to=uploadItem('account_screenshot'), null=True, blank=True)
-    _thumbnail_screenshot = models.ImageField(null=True, upload_to=uploadThumb('account_screenshot'))
+        upload_to=uploadItem('account_screenshot'), null=True, blank=True, max_length=255)
+    _thumbnail_screenshot = models.ImageField(null=True, upload_to=uploadThumb('account_screenshot'), max_length=255)
     level_on_screenshot_upload = models.PositiveIntegerField('Level on screenshot upload', null=True)
     is_hidden_from_leaderboard = models.BooleanField('Hide from leaderboard', default=False, db_index=True)
     is_playground = models.BooleanField(
@@ -343,11 +343,9 @@ BASE_MODEL_FIELDS_PER_VERSION_AND_LANGUAGE_FOR_IMAGES = OrderedDict([
         string_concat(*([_version['translation'], ' - ', _('Image')] + (
             [' - ', getVerboseLanguage(_language)] if _language else []
         ))),
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True, max_length=255,)),
     (u'_original_{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True, max_length=255,)),
 ])
 
 def getBaseModelWithVersions(
@@ -713,8 +711,8 @@ class _BaseEvent(MagiModel):
 class BaseEvent(_BaseEvent):
     collection_name = 'event'
 
-    image = models.ImageField(_('Image'), upload_to=uploadItem('event'), null=True)
-    _original_image = models.ImageField(null=True, upload_to=uploadTiny('event'))
+    image = models.ImageField(_('Image'), upload_to=uploadItem('event'), null=True, max_length=255)
+    _original_image = models.ImageField(null=True, upload_to=uploadTiny('event'), max_length=255)
 
     start_date = models.DateTimeField(_('Beginning'), null=True)
     end_date = models.DateTimeField(_('End'), null=True)
@@ -741,11 +739,9 @@ BASE_EVENT_FIELDS_PER_VERSION_AND_LANGUAGE = OrderedDict([
         string_concat(*([_version['translation'], ' - ', _('Image')] + (
             [' - ', getVerboseLanguage(_language)] if _language else []
         ))),
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, max_length=255,)),
     (u'_original_{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, max_length=255,)),
 ])
 
 _timezones_lambda = lambda _version_name, _version: _version.get(

@@ -1,6 +1,7 @@
 import os
 from setuptools import find_packages, setup
-from pip.req import parse_requirements
+from pip._internal.req import parse_requirements
+
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
@@ -13,7 +14,7 @@ install_reqs = parse_requirements(os.path.join(os.path.dirname(__file__), 'requi
 
 # reqs is a list of requirement
 # e.g. ['django==1.5.1', 'mezzanine==1.4.6']
-reqs = [str(ir.req) for ir in install_reqs]
+reqs = [str(ir.requirement) for ir in install_reqs]
 
 setup(
     name='MagiCircles',

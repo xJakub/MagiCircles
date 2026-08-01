@@ -650,8 +650,7 @@ class StaffDetails(MagiModel):
 
     image = models.ImageField(
         _('Image'), upload_to=uploadToRandom('staff_photos'), null=True, blank=True,
-        help_text='Photograph of yourself. Real life photos look friendlier when we introduce the team. If you really don\'t want to show your face, you can use an avatar, but we prefer photos :)',
-    )
+        help_text='Photograph of yourself. Real life photos look friendlier when we introduce the team. If you really don\'t want to show your face, you can use an avatar, but we prefer photos :)', max_length=255,)
     description = models.TextField('Self introduction', help_text='You can use markdown to add links.', null=True)
 
     favorite_food = models.CharField(max_length=100, null=True)
@@ -831,8 +830,8 @@ class Activity(MagiModel):
     TAGS_CHOICES = ACTIVITY_TAGS_CHOICES
     c_tags = models.TextField(_('Tags'), blank=True, null=True)
 
-    _original_image = models.ImageField(null=True, upload_to=uploadTiny('activities'))
-    image = models.ImageField(_('Image'), upload_to=uploadToRandom('activities'), null=True, blank=True, help_text=_('Only post official artworks, artworks you own, or fan artworks that are approved by the artist and credited.'))
+    _original_image = models.ImageField(null=True, upload_to=uploadTiny('activities'), max_length=255)
+    image = models.ImageField(_('Image'), upload_to=uploadToRandom('activities'), null=True, blank=True, help_text=_('Only post official artworks, artworks you own, or fan artworks that are approved by the artist and credited.'), max_length=255)
 
     archived_by_owner = models.BooleanField(default=False)
     archived_by_staff = models.ForeignKey(User, related_name='archived_activities', null=True, on_delete=models.SET_NULL)
@@ -1331,7 +1330,7 @@ class DonationMonth(MagiModel):
     cost = models.FloatField(default=250)
     goal = DONATORS_GOAL
     donations = models.FloatField(default=0)
-    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'))
+    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'), max_length=255)
 
     tinypng_settings = {
         'image': BADGE_IMAGE_TINYPNG_SETTINGS,
@@ -1401,7 +1400,7 @@ class Badge(MagiModel):
     m_description = models.TextField(_('Description'), null=True)
     _cache_description = models.TextField(null=True)
 
-    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'))
+    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'), max_length=255)
     url = models.CharField(max_length=200, null=True)
     show_on_top_profile = models.BooleanField(default=False)
     show_on_profile = models.BooleanField(default=False)
@@ -1478,10 +1477,10 @@ class Prize(MagiModel):
 
     owner = models.ForeignKey(User, related_name='added_prizes')
     name = models.CharField('Prize name', max_length=100)
-    image = models.ImageField('Prize image', upload_to=uploadItem('prize'))
-    image2 = models.ImageField('2nd image', upload_to=uploadItem('prize'), null=True, blank=True)
-    image3 = models.ImageField('3rd image', upload_to=uploadItem('prize'), null=True, blank=True)
-    image4 = models.ImageField('4th image', upload_to=uploadItem('prize'), null=True, blank=True)
+    image = models.ImageField('Prize image', upload_to=uploadItem('prize'), max_length=255)
+    image2 = models.ImageField('2nd image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)
+    image3 = models.ImageField('3rd image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)
+    image4 = models.ImageField('4th image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)
     value = models.DecimalField('Value', null=True, help_text='in USD', max_digits=6, decimal_places=2)
     display_value = property(lambda _s: u'US ${}'.format(_s.value))
 
