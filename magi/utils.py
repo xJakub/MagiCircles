@@ -3097,11 +3097,21 @@ def _getFilterFieldNameOfRelatedItem(model, related_item_field_name, suffix=u'')
             u'__'.join(related_item_field_name.split('__')[1:]),
             suffix=clearJoin([ filter_field_name, suffix ], u'__'),
         )
+    def _relation_direction_aware_filter_field_name():
+        # Since Django 1.8's relations refactor, both forward (ManyToManyDescriptor) and
+        # reverse (ReverseManyToOneDescriptor, etc.) accessors expose both .rel and .field,
+        # but they answer different questions depending on direction:
+        # - reverse accessor: .rel.field is the real FK/M2M field, defined on the *other*
+        #   model - .rel.field.name is what we want.
+        # - forward accessor: .rel.field is the field itself, defined on `model` - using
+        #   .rel.field.name here would just circularly return related_item_field_name back;
+        #   .field.related_query_name() is what we want instead.
+        descriptor = getattr(model, related_item_field_name)
+        if descriptor.rel.field.model is model:
+            return descriptor.field.related_query_name()
+        return descriptor.rel.field.name
     filter_field_name = failSafe(
-        lambda: getattr(model, related_item_field_name).field.related_query_name(),
-        exceptions=[ AttributeError ],
-    ) or failSafe(
-        lambda: getattr(model, related_item_field_name).related.field.name,
+        _relation_direction_aware_filter_field_name,
         exceptions=[ AttributeError ],
     ) or failSafe(
         lambda: getattr(model, related_item_field_name).name,
@@ -3485,7 +3495,7 @@ def addRelatedCaches(model_class, caches):
                 rel_model_class.REVERSE_RELATED_CACHES = []
             is_m2m = isinstance(model_field, models.ManyToManyField)
             rel_model_class.REVERSE_RELATED_CACHES.append((
-                model_field.related.get_accessor_name(),
+                model_field.rel.get_accessor_name(),
                 cache_name, is_m2m,
             ))
             label = notTranslatedWarning(model_field._verbose_name)
@@ -5438,7 +5448,7 @@ def create_user(user_model, username, email=None, password=None, language='en', 
         email=email or u'{}@yopmail.com'.format(username),
         password=username * 2,
     )
-    preferences = user_model.preferences.related.model.objects.create(
+    preferences = user_model.preferences.rel.related_model.objects.create(
         user=new_user,
         i_language=language,
     )

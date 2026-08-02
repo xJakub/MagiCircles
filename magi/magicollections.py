@@ -1329,7 +1329,7 @@ class MagiCollection(object):
             if 'collection_name' not in related_fields[m.name]:
                 related_fields[m.name]['collection_name'] = getattr(m.rel.to, 'collection_name', None)
             if 'filter_field_name' not in related_fields[m.name]:
-                related_fields[m.name]['filter_field_name'] = m.related.get_accessor_name()
+                related_fields[m.name]['filter_field_name'] = m.rel.get_accessor_name()
 
         #   from related objects
         #   + from many to many related objects

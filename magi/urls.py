@@ -852,14 +852,14 @@ def fixRevereRelatedCachesForModelClasses():
             relationship = getattr(model_class, cache_name, None)
             if not relationship:
                 continue
-            rel_model_class = relationship.related.model
+            rel_model_class = relationship.rel.related_model
             if not rel_model_class:
                 continue
             if not getattr(rel_model_class, 'REVERSE_RELATED_CACHES', []):
                 rel_model_class.REVERSE_RELATED_CACHES = []
-            is_m2m = isinstance(relationship.related.field, ManyToManyField)
+            is_m2m = isinstance(relationship.rel.field, ManyToManyField)
             rel_model_class.REVERSE_RELATED_CACHES.append((
-                relationship.related.field.name,
+                relationship.rel.field.name,
                 cache_name, is_m2m,
             ))
             rel_collection_name = getattr(rel_model_class, 'collection_name', None)
