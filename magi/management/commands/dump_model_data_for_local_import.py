@@ -18,33 +18,25 @@ def get_fields(model):
     foreign_keys = {}
     many_to_many = {}
     unique_fields = []
-    for field_name in model._meta.get_all_field_names():
+    for field in model._meta.get_fields():
+        if isinstance(field, related.ForeignObjectRel):
+            # Reverse relation (not a forward field) - not dumped by this command
+            continue
+        field_name = field.name
         if field_name.startswith('_cache_'):
             continue
         if field_name in ['id', 'owner']:
             continue
-        try:
-            field = model._meta.get_field(field_name)
-            if isinstance(field, related.ForeignObjectRel):
-                # Reverse relation (not a forward field) - not dumped by this command
-                continue
-            if getattr(field, 'name', field_name) != field_name:
-                # get_all_field_names() also yields the attname (e.g. "owner_id") for FK
-                # fields alongside the real field name ("owner") - skip the alias, the
-                # real name is processed in its own iteration.
-                continue
-            if isinstance(field, related.ForeignKey):
-                if field.rel.to != model: # Avoid circular dependencies
-                    foreign_keys[field_name] = field.rel.to
-            elif isinstance(field, related.ManyToManyField):
-                many_to_many[field_name] = field.rel.to
+        if isinstance(field, related.ForeignKey):
+            if field.rel.to != model: # Avoid circular dependencies
+                foreign_keys[field_name] = field.rel.to
+        elif isinstance(field, related.ManyToManyField):
+            many_to_many[field_name] = field.rel.to
+        else:
+            if field.unique:
+                unique_fields.append(field_name)
             else:
-                if field.unique:
-                    unique_fields.append(field_name)
-                else:
-                    fields.append(field_name)
-        except FieldDoesNotExist:
-            pass
+                fields.append(field_name)
     if not unique_fields:
         unique_fields = ['pk']
     return fields, unique_fields, foreign_keys, many_to_many

@@ -9,6 +9,7 @@ from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.middleware import csrf
 from django.http import Http404
 from django.db.models import Q, Prefetch, FieldDoesNotExist
+from django.db.models.fields.related import ForeignObjectRel
 from django.shortcuts import get_object_or_404
 from django.conf import settings as django_settings
 from magi.views import indexExtraContext
@@ -1333,12 +1334,14 @@ class MagiCollection(object):
 
         #   from related objects
         #   + from many to many related objects
-        for r in item._meta.get_all_related_objects() + item._meta.get_all_related_many_to_many_objects():
+        for r in item._meta.get_fields():
+            if not isinstance(r, ForeignObjectRel):
+                continue
             field_name = r.get_accessor_name()
             if field_name not in related_fields:
                 related_fields[field_name] = {}
             if 'collection_name' not in related_fields[field_name]:
-                related_fields[field_name]['collection_name'] = getattr(r.model, 'collection_name', None)
+                related_fields[field_name]['collection_name'] = getattr(r.related_model, 'collection_name', None)
             if 'filter_field_name' not in related_fields[field_name]:
                 related_fields[field_name]['filter_field_name'] = r.field.name
 

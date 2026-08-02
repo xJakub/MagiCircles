@@ -3,6 +3,7 @@ from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _, string_concat
 from django.db import models
+from django.db.models.fields.related import ForeignObjectRel
 from django.conf import settings as django_settings
 from django.core.validators import RegexValidator
 from django.utils import timezone
@@ -109,8 +110,8 @@ def to_cached_preferences(
 ):
     try:
         preferences_model = next(
-            rel.related_model for rel in item._meta.get_field('owner').rel.to._meta.get_all_related_objects()
-            if rel.get_accessor_name() == 'preferences'
+            rel.related_model for rel in item._meta.get_field('owner').rel.to._meta.get_fields()
+            if isinstance(rel, ForeignObjectRel) and rel.get_accessor_name() == 'preferences'
         )
     except StopIteration:
         preferences_model = None

@@ -3076,14 +3076,14 @@ def getModelOfRelatedItem(
         if isinstance(field, ForeignObjectRel):
             return _return(field.related_model, field, isinstance(field, models.ManyToManyRel))
         return _return(field.rel.to, field, isinstance(field, models.ManyToManyField))
-    # Reverse related objects
-    for r in model._meta.get_all_related_objects():
+    # Reverse related objects (forward and reverse relations both come from get_fields();
+    # filtering to ForeignObjectRel instances covers what get_all_related_objects()/
+    # get_all_related_many_to_many_objects() used to, before their removal in Django 1.10)
+    for r in model._meta.get_fields():
+        if not isinstance(r, ForeignObjectRel):
+            continue
         if r.get_accessor_name() == related_item_field_name:
-            return _return(r.related_model, r, False)
-    # Many to many reverse related objects
-    for r in model._meta.get_all_related_many_to_many_objects():
-        if r.get_accessor_name() == related_item_field_name:
-            return _return(r.model, r, True)
+            return _return(r.related_model, r, isinstance(r, models.ManyToManyRel))
     return _return(None, None, None)
 
 def _getFilterFieldNameOfRelatedItem(model, related_item_field_name, suffix=u''):
@@ -3300,9 +3300,10 @@ def getAllModelFields(model, only_related_fields=False):
                 # Many to many
                 + list(model._meta.many_to_many)
             ) + (
-                # Reverse related
-                model._meta.get_all_related_objects()
-                + model._meta.get_all_related_many_to_many_objects()
+                # Reverse related (get_all_related_objects()/get_all_related_many_to_many_objects()
+                # were removed in Django 1.10 - get_fields() covers both, forward and reverse,
+                # filtering to ForeignObjectRel instances gives just the reverse ones)
+                [ f for f in model._meta.get_fields() if isinstance(f, ForeignObjectRel) ]
             )
         )
     ])
