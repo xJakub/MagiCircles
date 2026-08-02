@@ -378,7 +378,7 @@ class MagiCollection(object):
         fields_prefetched = listUnique( # may still get duplicates if queryset specified
             getattr(view, 'fields_prefetched', [])
             + getattr(view, 'fields_prefetched_together', [])
-            + queryset._prefetch_related_lookups
+            + list(queryset._prefetch_related_lookups)
         )
         prefetched_with_max_querysets = {}
         # Clear current prefetched because they'll be re-added here

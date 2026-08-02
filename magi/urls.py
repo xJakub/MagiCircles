@@ -8,6 +8,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import ManyToManyField
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import string_concat, ugettext_lazy as _
 from django.views.generic.base import RedirectView
@@ -882,3 +883,37 @@ def fixRevereRelatedCachesForModelClasses():
             setattr(model_class, u'to_cache_{}'.format(cache_name), to_cache)
 
 fixRevereRelatedCachesForModelClasses()
+
+############################################################
+# Monkeypatch django-bootstrap-form: it wraps context in a `Context(...)` object before
+# calling `template.render()`, which Django 1.11's backend template wrapper rejects outright
+# (`TypeError: context must be a dict rather than Context`) - unfixed even in the package's
+# latest (3.4) release, since it's unmaintained. Same logic, just a plain dict instead.
+
+def _fixBootstrapFormRender():
+    from bootstrapform.templatetags import bootstrap as bootstrapform_tags
+
+    def render(element, markup_classes):
+        element_type = element.__class__.__name__.lower()
+        if element_type == 'boundfield':
+            bootstrapform_tags.add_input_classes(element)
+            template = get_template('bootstrapform/field.html')
+            context = {'field': element, 'classes': markup_classes, 'form': element.form}
+        else:
+            has_management = getattr(element, 'management_form', None)
+            if has_management:
+                for form in element.forms:
+                    for field in form.visible_fields():
+                        bootstrapform_tags.add_input_classes(field)
+                template = get_template('bootstrapform/formset.html')
+                context = {'formset': element, 'classes': markup_classes}
+            else:
+                for field in element.visible_fields():
+                    bootstrapform_tags.add_input_classes(field)
+                template = get_template('bootstrapform/form.html')
+                context = {'form': element, 'classes': markup_classes}
+        return template.render(context)
+
+    bootstrapform_tags.render = render
+
+_fixBootstrapFormRender()
