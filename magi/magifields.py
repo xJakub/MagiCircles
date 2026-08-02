@@ -4,7 +4,7 @@ from copy import copy
 from collections import OrderedDict
 from django.conf import settings as django_settings
 from django.db.models.fields import Field as ModelField
-from django.db.models.related import RelatedObject
+from django.db.models.fields.related import ForeignObjectRel
 from django.db.models.query import QuerySet
 from django.utils.formats import date_format
 from django.utils.translation import (
@@ -3097,7 +3097,7 @@ class BaseMagiManyToManyModelField(BaseMagiRelatedField):
     def get_rel_model_class(self):
         if isinstance(self.model_field, models.models.ManyToManyField):
             return self.model_field.rel.to
-        elif isinstance(self.model_field, RelatedObject):
+        elif isinstance(self.model_field, ForeignObjectRel):
             return self.model_field.model
         elif isinstance(self.model_field, ReverseRelatedDetails):
             return getModelOfRelatedItem(self.model, self.item_access_field_name)
@@ -3269,7 +3269,7 @@ class MagiManyToManyModelField(BaseMagiManyToManyModelField):
         return (
             (
                 isinstance(model_field, models.models.ManyToManyField)
-                or isinstance(model_field, RelatedObject)
+                or isinstance(model_field, ForeignObjectRel)
                 or isinstance(model_field, ReverseRelatedDetails)
             )
             and (
@@ -3742,7 +3742,7 @@ class MagiCachedTotalModelField(BaseMagiManyToManyModelField):
     def is_field(self, field_name, model_field, options):
         return (
             isinstance(model_field, models.models.ManyToManyField)
-            or isinstance(model_field, RelatedObject)
+            or isinstance(model_field, ForeignObjectRel)
             or isinstance(model_field, ReverseRelatedDetails)
         )
 
@@ -4391,7 +4391,7 @@ class MagiFields(object):
 
     def set_model_preselected_subfields(self, field_name, model_field, subfields_list):
         for subfield_field_name in subfields_list:
-            if isinstance(model_field, RelatedObject):
+            if isinstance(model_field, ForeignObjectRel):
                 subfield_model_field = modelGetField(model_field.model, subfield_field_name)
             else:
                 subfield_model_field = modelGetField(model_field.rel.to, subfield_field_name)

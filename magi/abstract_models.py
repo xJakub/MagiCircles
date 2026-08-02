@@ -109,7 +109,7 @@ def to_cached_preferences(
 ):
     try:
         preferences_model = next(
-            rel.model for rel in item._meta.get_field('owner').rel.to._meta.get_all_related_objects()
+            rel.related_model for rel in item._meta.get_field('owner').rel.to._meta.get_all_related_objects()
             if rel.get_accessor_name() == 'preferences'
         )
     except StopIteration:

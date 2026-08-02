@@ -25,6 +25,14 @@ def get_fields(model):
             continue
         try:
             field = model._meta.get_field(field_name)
+            if isinstance(field, related.ForeignObjectRel):
+                # Reverse relation (not a forward field) - not dumped by this command
+                continue
+            if getattr(field, 'name', field_name) != field_name:
+                # get_all_field_names() also yields the attname (e.g. "owner_id") for FK
+                # fields alongside the real field name ("owner") - skip the alias, the
+                # real name is processed in its own iteration.
+                continue
             if isinstance(field, related.ForeignKey):
                 if field.rel.to != model: # Avoid circular dependencies
                     foreign_keys[field_name] = field.rel.to
@@ -174,6 +182,9 @@ def print_file_headers(filed):
 
 class Command(BaseCommand):
     can_import_settings = True
+
+    def add_arguments(self, parser):
+        parser.add_argument('args', metavar='model_name', nargs='*')
 
     def handle(self, *args, **options):
         if len(args) < 1:

@@ -411,7 +411,7 @@ class MagiForm(forms.ModelForm):
                 model_field = self.Meta.model._meta.get_field(name)
             except FieldDoesNotExist:
                 model_field = None
-            if model_field is not None and model_field.null:
+            if model_field is not None and getattr(model_field, 'null', False):
                 self.fields[name].required = False
 
             # For ModelChoiceField, make sure .get_queryset is called
@@ -1930,7 +1930,7 @@ class MagiFiltersForm(AutoForm):
                         try:
                             field_label = notTranslatedWarning(
                                 self.Meta.model._meta.get_field(field_name).verbose_name)
-                        except FieldDoesNotExist:
+                        except (FieldDoesNotExist, AttributeError):
                             field_label = toHumanReadable(field_name, warning=True)
                     label_parts.append(unicode(field_label))
                 self.fields[new_field_name] = forms.ChoiceField(
@@ -3793,9 +3793,9 @@ class FilterActivities(MagiFiltersForm):
             if 'liked' in self.fields:
                 del(self.fields['liked'])
         self.active_tab = None
+        self.request_tab = None
         if self.request and self.request.user.is_authenticated():
             # If a tab is selected in the request (URL)
-            self.request_tab = None
             if self.request.path.startswith('/activities/'):
                 self.request_tab = self.request.path.split('/')[2]
             elif self.request.path.startswith('/ajax/activities/'):

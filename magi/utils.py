@@ -29,7 +29,7 @@ from django.template.loader import get_template
 from django.db import models
 from django.db import connection
 from django.db.models.fields import BLANK_CHOICE_DASH, FieldDoesNotExist
-from django.db.models.related import RelatedObject
+from django.db.models.fields.related import ForeignObjectRel
 from django.db.models.query import QuerySet
 from django.db.models import Q, Prefetch
 from django.forms.models import model_to_dict
@@ -3073,11 +3073,13 @@ def getModelOfRelatedItem(
     # Foreign key or many to many
     field = modelGetField(model, related_item_field_name)
     if field:
+        if isinstance(field, ForeignObjectRel):
+            return _return(field.related_model, field, isinstance(field, models.ManyToManyRel))
         return _return(field.rel.to, field, isinstance(field, models.ManyToManyField))
     # Reverse related objects
     for r in model._meta.get_all_related_objects():
         if r.get_accessor_name() == related_item_field_name:
-            return _return(r.model, r, False)
+            return _return(r.related_model, r, False)
     # Many to many reverse related objects
     for r in model._meta.get_all_related_many_to_many_objects():
         if r.get_accessor_name() == related_item_field_name:
@@ -3272,21 +3274,21 @@ def getAllModelFields(model, only_related_fields=False):
     return OrderedDict([
         (
             model_field.get_accessor_name()
-            if isinstance(model_field, RelatedObject)
+            if isinstance(model_field, ForeignObjectRel)
             else model_field.name,
             model_field
         ) for model_field in (
             sorted(
                 # Model fields
                 ([ f for f in (
-                    model._meta.concrete_fields
+                    list(model._meta.concrete_fields)
                     + [f for f in model._meta.virtual_fields if isinstance(f, ModelField)]
                 ) if (not only_related_fields
                       or isinstance(f, models.ForeignKey)
                       or isinstance(f, models.OneToOneField))
                   ])
                 # Many to many
-                + model._meta.many_to_many
+                + list(model._meta.many_to_many)
             ) + (
                 # Reverse related
                 model._meta.get_all_related_objects()
