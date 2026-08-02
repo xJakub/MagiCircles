@@ -1,3 +1,4 @@
+from __future__ import print_function
 import datetime
 from collections import OrderedDict
 from django.contrib.auth.models import User
@@ -381,7 +382,7 @@ def getBaseModelWithVersions(
     if not has_languages:
         if extra_fields_per_language:
             if django_settings.DEBUG:
-                print '[Warning] extra_fields_per_language was specified in model with versions, but versions don\'t have languages.'
+                print('[Warning] extra_fields_per_language was specified in model with versions, but versions don\'t have languages.')
         else:
             fields.update(fields_per_language)
 

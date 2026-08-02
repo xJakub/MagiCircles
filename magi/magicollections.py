@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
+from __future__ import print_function
 import string, copy
 from collections import OrderedDict
 from django.utils.translation import ugettext_lazy as _, string_concat, get_language
@@ -449,20 +450,20 @@ class MagiCollection(object):
                 queryset = queryset.prefetch_related(Prefetch(prefetched, queryset=queryset_of_prefetched.distinct(), to_attr=to_attr))
 
         if django_settings.DEBUG and view and getattr(django_settings, 'DEBUG_SHOW_QUERYSET', True):
-            print ''
-            print 'Get queryset for', self.plural_name, view.view
-            print displayQueryset(queryset, prefix=u'  ')
+            print('')
+            print('Get queryset for', self.plural_name, view.view)
+            print(displayQueryset(queryset, prefix=u'  '))
             if hasattr(request, '_prefetched_with_max'):
-                print u'{}\n'.format('  Manual prefetch queries with limits:')
+                print(u'{}\n'.format('  Manual prefetch queries with limits:'))
                 for prefetched, queryset_of_prefetched in prefetched_with_max_querysets.items():
-                    print '    ', prefetched
+                    print('    ', prefetched)
                     if queryset_of_prefetched is None:
-                        print '      Failed to get queryset'
+                        print('      Failed to get queryset')
                     else:
-                        print displayQueryset(queryset_of_prefetched, prefix=u'      ')
+                        print(displayQueryset(queryset_of_prefetched, prefix=u'      '))
             if hasattr(request, '_not_prefetched_for_high_traffic'):
-                print u'  Due to high traffic, the following have not been prefetched:'
-                print u'    {}'.format(request._not_prefetched_for_high_traffic)
+                print(u'  Due to high traffic, the following have not been prefetched:')
+                print(u'    {}'.format(request._not_prefetched_for_high_traffic))
         return queryset
 
     def get_title_prefixes(self, request, context):

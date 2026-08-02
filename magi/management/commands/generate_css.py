@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os, pkg_resources
 from django.core.management.base import BaseCommand
 from django.conf import settings as django_settings
@@ -133,7 +134,7 @@ def generateStylesheets(name=None, settings={}):
     css_path = os.path.join(django_settings.BASE_DIR, django_settings.SITE, 'static', 'css', filename)
 
     command = u'lessc {path} {css_path}'.format(path=path, css_path=css_path)
-    print command
+    print(command)
     os.system(command)
 
 class Command(BaseCommand):

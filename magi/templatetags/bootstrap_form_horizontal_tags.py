@@ -1,4 +1,5 @@
 import datetime
+import six
 from django import template
 from django.forms.fields import NullBooleanField, BooleanField, DateTimeField
 register = template.Library()
@@ -21,7 +22,7 @@ def _parse_date(field):
     val = field.value()
     if not val:
         return None
-    elif isinstance(val, basestring):
+    elif isinstance(val, six.string_types):
         try:
             val = datetime.datetime.strptime(val, "%Y-%m-%dT%H:%M:%S")
         except ValueError:

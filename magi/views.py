@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import math, datetime, random, string, simplejson
+import six
 from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse, Http404
@@ -11,7 +12,7 @@ from django.contrib.auth import authenticate, login as login_action
 from django.contrib.admin.utils import NestedObjects
 from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
 from django.utils.formats import date_format
-from django_translated import t
+from .django_translated import t
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.utils.http import urlquote
@@ -428,8 +429,8 @@ def indexExtraContext(context):
 
         # When a foreground is provided but no background,
         # use a random background in HOMEPAGE_BACKGROUNDS
-        if (context['art'].has_key('foreground_url')
-            and not context['art'].has_key('url')
+        if ('foreground_url' in context['art']
+            and 'url' not in context['art']
             and HOMEPAGE_BACKGROUNDS):
 
             background = None
@@ -443,7 +444,7 @@ def indexExtraContext(context):
                 background = random.choice(HOMEPAGE_BACKGROUNDS)
 
             context['art']['url'] = background['image']
-            if background.has_key('hd_image'):
+            if 'hd_image' in background:
                 context['art']['hd_url'] = background['hd_image']
 
         # Side of art
@@ -559,7 +560,7 @@ def about(request, context):
                 staff_member.stats[group] = []
                 if stats:
                     for stat in stats:
-                        if isinstance(stat['model'], basestring):
+                        if isinstance(stat['model'], six.string_types):
                             model = getattr(models, stat['model'])
                         else:
                             model = stat['model']

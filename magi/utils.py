@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-import os, string, random, csv, tinify, cStringIO, pytz, simplejson, datetime, io, operator, re, math, requests, urllib, urllib2, json
+from __future__ import print_function
+import os, string, random, csv, tinify, io, pytz, simplejson, datetime, operator, re, math, requests, urllib, urllib2, json
+import six
 from PIL import Image
 from json.encoder import encode_basestring_ascii
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 from django.conf import settings as django_settings
@@ -46,7 +48,7 @@ from django.forms import (
 )
 from django.core.mail import EmailMultiAlternatives
 from django.core.files.images import ImageFile
-from django_translated import t
+from .django_translated import t
 from magi import seasons
 from magi.raw import (
     DEFAULT_ICONS_BASED_ON_NAMES,
@@ -1969,7 +1971,7 @@ def birthdayURL(user):
 def getAge(birthdate, formatted=False):
     if not birthdate:
         return None
-    if isinstance(birthdate, str) or isinstance(birthdate, unicode):
+    if isinstance(birthdate, six.string_types):
         birthdate = parse_date(birthdate)
     today = datetime.date.today()
     age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
@@ -2065,13 +2067,13 @@ def addYearToEventWithoutYear(start_date=None, end_date=None, return_have_year=F
         end_date = start_date
 
     # Transform strings to dates
-    if isinstance(start_date, basestring):
+    if isinstance(start_date, six.string_types):
         try:
             start_date = pytz.utc.localize(datetime.datetime.strptime(start_date, '%Y-%m-%d'))
         except ValueError:
             start_date = datetime.datetime.strptime(start_date, '%m-%d')
             start_date = (start_date.month, start_date.day)
-    if isinstance(end_date, basestring):
+    if isinstance(end_date, six.string_types):
         try:
             end_date = pytz.utc.localize(datetime.datetime.strptime(end_date, '%Y-%m-%d'))
         except ValueError:
@@ -2194,7 +2196,7 @@ def failSafe(f, exceptions=None, default=None, log_exception=False, log_print=No
                 import traceback
                 traceback.print_exc()
             if django_settings.DEBUG and log_print:
-                print log_print
+                print(log_print)
             return default
     try:
         return f()
@@ -2203,7 +2205,7 @@ def failSafe(f, exceptions=None, default=None, log_exception=False, log_print=No
             import traceback
             traceback.print_exc()
         if django_settings.DEBUG and log_print:
-            print log_print
+            print(log_print)
         return default
 
 def recursiveCall(values, original_value, f):
@@ -2233,7 +2235,7 @@ def tourldash(string, separator=u'-'):
     return separator.join([s for s in s.split(separator) if s])[:MAX_URL_LENGTH]
 
 def notTranslatedWarning(string):
-    if string and isinstance(string, basestring) and django_settings.DEBUG:
+    if string and isinstance(string, six.string_types) and django_settings.DEBUG:
         return u'❌🌏 {}'.format(string)
     return string
 
@@ -2312,7 +2314,7 @@ def jsv(v):
         return mark_safe(json.dumps(v, cls=LazyEncoder).replace('"True"', '"true"').replace('"False"', '"false"'))
     if isinstance(v, bool):
         return 'true' if v else 'false'
-    if isinstance(v, str) or isinstance(v, unicode):
+    if isinstance(v, six.string_types):
         return mark_safe(u'"{}"'.format(v))
     return v
 
@@ -2608,11 +2610,11 @@ class MagiQueryDict(object):
 
     def __getattr__(self, name):
         if django_settings.DEBUG:
-            print u"""
+            print(u"""
             [Warning] An unknown property of querydict was called,
             which MagiQueryDict doesn\'t know of and doesn\'t wrap,
             which could result in unexpected behavior.
-            """
+            """)
         try:
             return getattr(self.querydict, name)
         except AttributeError:
@@ -2923,7 +2925,7 @@ def prepareCache(d):
     elif isinstance(d, tuple):
         return tuple([ prepareCache(value) for value in d ])
     is_supported = False
-    for supported_type in [ basestring, int, float, bool, type(None) ]:
+    for supported_type in [ six.string_types, int, float, bool, type(None) ]:
         if isinstance(d, supported_type):
             is_supported = True
             break
@@ -3685,7 +3687,7 @@ def _addRelatedCaches_toTranslationsField(field_name):
 def updateAllRelatedCaches():
     # /!\ Can't be called at global level
     for collection_name, collection in getMagiCollections().items():
-        print collection_name
+        print(collection_name)
         try:
             collection.queryset.model.update_all_related_caches_of_model(update_reverse_related_caches=False)
         except AttributeError:
@@ -3787,11 +3789,11 @@ def filterByTranslatedValue(
             elif modelHasField(queryset.model, short_source_field_name):
                 other_languages_fields.append(short_source_field_name)
 
-    if isinstance(value, basestring):
+    if isinstance(value, six.string_types):
         d_value = encode_basestring_ascii(value)[1:-1]
 
     if mode == FilterByMode.Exact:
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             d_value = u'"{}"'.format(d_value)
         if language:
             return _return(
@@ -3808,7 +3810,7 @@ def filterByTranslatedValue(
             return _return(condition)
 
     elif mode == FilterByMode.StartsWith:
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             d_value = u'"{}'.format(d_value)
         if language:
             return _return(Q(**{
@@ -3889,17 +3891,17 @@ class ManyToManyCSVField(forms_CharField):
         if isinstance(value, list):
             if isinstance(value[0], self.m2m_items_model_class):
                 value = [getattr(item, self.m2m_lookup_field_name) for item in value]
-            elif isinstance(value[0], int) or isinstance(value[0], long): # pk
+            elif isinstance(value[0], six.integer_types): # pk
                 try:
                     value = [ getattr(self._known_items_by_pk[item_pk], self.m2m_lookup_field_name) for item_pk in value ]
                 except KeyError:
                     items = list(self.queryset.filter(pk__in=value))
                     self._save_known_items(items)
                     value = [ getattr(item, self.m2m_lookup_field_name) for item in items ]
-            if not isinstance(value[0], basestring):
+            if not isinstance(value[0], six.string_types):
                 raise ValueError('Unknown value {} ({})'.format(type(value), value))
             return u', '.join(value)
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             return value
         raise ValueError('Unknown value {} ({})'.format(type(value), value))
 
@@ -3924,7 +3926,7 @@ class CSVChoiceField(forms_MultipleChoiceField):
             return None
         if isinstance(value, list):
             return value
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             return split_data(value)
         raise ValueError('Unknown value {} ({})'.format(type(value), value))
 
@@ -4584,7 +4586,7 @@ def dataToImageFile(data):
 def _imageProcessing(data, filename, processing, return_data=False, return_pil_image=False):
     _, extension = os.path.splitext(filename)
     extension = extension.lower()
-    pil_image = Image.open(cStringIO.StringIO(data))
+    pil_image = Image.open(io.BytesIO(data))
     pil_image = processing(pil_image)
     output = io.BytesIO()
     pil_image.save(output, format={
@@ -4676,7 +4678,7 @@ def shrinkImageFromData(data, filename, settings={}):
             height=settings['height'],
         )
     elif settings.get('resize', None) == 'fit':
-        image = Image.open(cStringIO.StringIO(data))
+        image = Image.open(io.BytesIO(data))
         max_width = settings.get('max_width', django_settings.MAX_WIDTH)
         max_height = settings.get('max_height', django_settings.MAX_HEIGHT)
         min_width = settings.get('min_width', django_settings.MIN_WIDTH)
@@ -4862,7 +4864,7 @@ def makeImageGrid(
     line = 0
     position = 0
     for image in images:
-        if isinstance(image, basestring):
+        if isinstance(image, six.string_types):
             data, imagefile = imageURLToImageFile(image, return_data=True)
             if not imagefile:
                 continue
@@ -5200,7 +5202,7 @@ def locationOnChange(user_preferences):
     # it's included within the function
     import sys
     from geopy.geocoders import Nominatim
-    from tools import generateMap
+    from .tools import generateMap
 
     geolocator = Nominatim()
     try:
@@ -5210,14 +5212,14 @@ def locationOnChange(user_preferences):
             user_preferences.longitude = location.longitude
             user_preferences.location_changed = False
             user_preferences.save()
-            print user_preferences.user, user_preferences.location, user_preferences.latitude, user_preferences.longitude
+            print(user_preferences.user, user_preferences.location, user_preferences.latitude, user_preferences.longitude)
             generateMap()
         else:
             user_preferences.location_changed = False
             user_preferences.save()
-            print user_preferences.user, user_preferences.location, 'Invalid location'
+            print(user_preferences.user, user_preferences.location, 'Invalid location')
     except:
-        print u'{} {} Error, {}'.format(user_preferences.user, user_preferences.location, sys.exc_info()[0])
+        print(u'{} {} Error, {}'.format(user_preferences.user, user_preferences.location, sys.exc_info()[0]))
         # Will not mark as not changed, so it will be retried at next iteration
     return True
 
@@ -5245,7 +5247,7 @@ def duplicateTranslation(model, field, term, only_for_language=None, print_log=T
                             close_a='</a>' if html_log else '',
                         )
                         if print_log:
-                            print log
+                            print(log)
                         logs.append(log)
                     s_item.save()
                 known_translations.append(language)

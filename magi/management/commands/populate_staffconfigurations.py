@@ -1,3 +1,4 @@
+from __future__ import print_function
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings as django_settings
 from magi.utils import ordinalNumber, LANGUAGES_DICT
@@ -7,13 +8,13 @@ from magi import models, seasons
 def create(d):
     try:
         if not d.get('i_language', None) and models.StaffConfiguration.objects.filter(key=d['key']).count():
-            print 'Failed to create {} with error: {}'.format(d['key'], 'Already exists')
+            print('Failed to create {} with error: {}'.format(d['key'], 'Already exists'))
             return False
         models.StaffConfiguration.objects.create(owner_id=1, **d)
-        print u'Created {}{}'.format(d['key'], u' for language {}'.format(d['i_language']) if 'i_language' in d else '')
+        print(u'Created {}{}'.format(d['key'], u' for language {}'.format(d['i_language']) if 'i_language' in d else ''))
         return True
     except Exception as e:
-        print 'Failed to create {} with error: {}'.format(d['key'], e)
+        print('Failed to create {} with error: {}'.format(d['key'], e))
     return False
 
 class Command(BaseCommand):

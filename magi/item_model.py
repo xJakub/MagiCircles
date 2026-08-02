@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import json, datetime, hashlib, urllib
+import six
 from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.db import models
@@ -155,7 +157,7 @@ def get_owner_collection(cls):
 
 def get_allow_multiple_per_owner(cls):
     # todo
-    print cls.owner
+    print(cls.owner)
     return cls.owner
 
 def get_is_owner(instance, user):
@@ -408,7 +410,7 @@ class BaseMagiModel(models.Model):
         elif isinstance(d, dict):
             d = self.cached_json_extra(field_name, d)
         else:
-            print 'Warning: Invalid JSON saved'
+            print('Warning: Invalid JSON saved')
             return None
         return d
 
@@ -559,7 +561,7 @@ class BaseMagiModel(models.Model):
                         getattr(self, cache_name).all()._result_cache = None
             caches_that_changed = self.update_caches_if_changed(related_caches)
             if django_settings.DEBUG and caches_that_changed:
-                print '  UPDATED CACHE', caches_that_changed
+                print('  UPDATED CACHE', caches_that_changed)
         if update_reverse_related_caches:
             for rel_field_name, rel_cache_name, is_m2m in getattr(
                     self, 'REVERSE_RELATED_CACHES', []):
@@ -572,31 +574,31 @@ class BaseMagiModel(models.Model):
                             changed = rel_item.update_cache_if_changed(rel_cache_name)
                             if django_settings.DEBUG and changed:
                                 if not flag:
-                                    print '  UPDATE M2M CACHE REV', rel_field_name
+                                    print('  UPDATE M2M CACHE REV', rel_field_name)
                                     flag = True
-                                print '    ', failSafe(lambda: unicode(rel_item), default=rel_item.id)
+                                print('    ', failSafe(lambda: unicode(rel_item), default=rel_item.id))
                         flag = False
                         for previous_rel_item in previous_related_caches.get(rel_field_name, []):
                             if previous_rel_item not in rel_items:
                                 changed = previous_rel_item.update_cache_if_changed(rel_cache_name)
                                 if django_settings.DEBUG and changed:
                                     if not flag:
-                                        print '  UPDATE M2M CACHE REV OF REMOVED', rel_field_name
+                                        print('  UPDATE M2M CACHE REV OF REMOVED', rel_field_name)
                                         flag = True
-                                    print '    ', failSafe(lambda: unicode(previous_rel_item), default=previous_rel_item.id)
+                                    print('    ', failSafe(lambda: unicode(previous_rel_item), default=previous_rel_item.id))
                     else:
                         rel_item = getattr(self, rel_field_name)
                         if rel_item:
                             changed = rel_item.update_cache_if_changed(rel_cache_name)
                             if django_settings.DEBUG and changed:
-                                print '  UPDATE CACHE REV', rel_field_name
-                                print '    ', failSafe(lambda: unicode(rel_item), default=rel_item.id)
+                                print('  UPDATE CACHE REV', rel_field_name)
+                                print('    ', failSafe(lambda: unicode(rel_item), default=rel_item.id))
                         previous_rel_item = previous_related_caches.get(rel_field_name, None)
                         if previous_rel_item and previous_rel_item != rel_item:
                             changed = previous_rel_item.update_cache_if_changed(rel_cache_name)
                             if django_settings.DEBUG and changed:
-                                print '  UPDATE CACHE REV OF REMOVED', rel_field_name
-                                print '    ', failSafe(lambda: unicode(previous_rel_item), default=previous_rel_item.id)
+                                print('  UPDATE CACHE REV OF REMOVED', rel_field_name)
+                                print('    ', failSafe(lambda: unicode(previous_rel_item), default=previous_rel_item.id))
 
                 else:
                     rel_queryset = getattr(self, rel_field_name).all()
@@ -609,9 +611,9 @@ class BaseMagiModel(models.Model):
                         changed = rel_item.update_cache_if_changed(rel_cache_name)
                         if django_settings.DEBUG and changed:
                             if not flag:
-                                print '  UPDATE CACHE REV', rel_field_name
+                                print('  UPDATE CACHE REV', rel_field_name)
                                 flag = True
-                            print '    ', failSafe(lambda: unicode(rel_item), default=rel_item.id)
+                            print('    ', failSafe(lambda: unicode(rel_item), default=rel_item.id))
 
     @classmethod
     def update_all_related_caches_of_model(self, update_reverse_related_caches=True):
@@ -626,7 +628,7 @@ class BaseMagiModel(models.Model):
             else:
                 queryset = queryset.select_related(cache_name)
         for item in queryset:
-            print self.__name__, failSafe(lambda: unicode(item), default=item.id)
+            print(self.__name__, failSafe(lambda: unicode(item), default=item.id))
             item.update_all_related_caches(
                 reload_m2m=False, update_reverse_related_caches=update_reverse_related_caches)
 
@@ -1029,7 +1031,7 @@ class BaseMagiModel(models.Model):
                 return self._attr_error(original_name)
             # If it's a string, just turn it into a path
             value = getattr(self, field_name)
-            if (isinstance(value, basestring)
+            if (isinstance(value, six.string_types)
                 or isinstance(value, ImageFieldFile)):
                 return (get_http_file_url_from_path(unicode(value))
                         if name.startswith('http_')

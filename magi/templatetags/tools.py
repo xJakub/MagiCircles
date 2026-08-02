@@ -91,7 +91,7 @@ def getattribute(value, arg):
         if callable(getattr(value, arg)):
             return getattr(value, arg)()
         return getattr(value, arg)
-    elif hasattr(value, 'has_key') and value.has_key(arg):
+    elif hasattr(value, 'has_key') and arg in value:
         return value[arg]
     elif re.compile("^\d+$").match(str(arg)) and len(value) > int(arg):
         return value[int(arg)]

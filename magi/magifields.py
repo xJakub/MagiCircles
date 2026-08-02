@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import re
+import six
 from copy import copy
 from collections import OrderedDict
 from django.conf import settings as django_settings
@@ -87,7 +89,7 @@ from magi.utils import (
     YouTubeVideoField,
 )
 from magi import models
-from magidisplay import *
+from .magidisplay import *
 
 SHOW_DEBUG = False
 SHOW_DEBUG_LIST = False
@@ -999,7 +1001,7 @@ class MagiField(object):
                 yield html, display_parameters, self.get_field_buttons_html(), False
         except:
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print self.field_name
+                print(self.field_name)
                 traceback.print_exc()
 
     def get_auto_image(self):
@@ -2221,7 +2223,7 @@ class MagiCSVFieldMixin(MagiModelField):
     def to_db_value(self):
         # Ensure value is always an OrderedDict or list
         db_value = super(MagiCSVFieldMixin, self).to_db_value()
-        if isinstance(db_value, basestring):
+        if isinstance(db_value, six.string_types):
             db_value = split_data(db_value)
         return db_value
 
@@ -2918,12 +2920,12 @@ class MagiForeignKeyModelField(BaseMagiRelatedField):
             rel_item = getRelatedItemFromItem(self.item, self.item_access_field_name)
             self.retrieved_from = 'db'
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   fk:', self.field_name, 'from database'
+                print('   fk:', self.field_name, 'from database')
         elif hasattr(self.item, u'cached_{}'.format(self.item_access_field_name)):
             rel_item = getattr(self.item, 'cached_' + self.item_access_field_name, None)
             self.retrieved_from = 'cache'
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   fk:', self.field_name, 'from cache'
+                print('   fk:', self.field_name, 'from cache')
         else:
             rel_item = None
             self.retrieved_from = None
@@ -3321,26 +3323,26 @@ class MagiManyToManyModelField(BaseMagiManyToManyModelField):
         if self._not_prefetched_for_high_traffic():
             self.and_more_button_total = 0
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   m2m:', self.field_name, 'not prefetched due to high traffic'
+                print('   m2m:', self.field_name, 'not prefetched due to high traffic')
             return []
         cached_items = getattr(self.item, u'cached_{}'.format(self.item_access_field_name), -1)
         if cached_items != -1:
             rel_items = cached_items or []
             self._and_more_button_total_from_rel_items(rel_items)
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   m2m:', self.field_name, 'from cache'
+                print('   m2m:', self.field_name, 'from cache')
         elif getattr(self.request, '_prefetched_with_max', {}).get(self.original_field_name):
             # Retrieve items that have been prefetched manually with a limit
             rel_items, self.rel_options.max, has_more = self.request._prefetched_with_max[self.original_field_name]
             self._and_more_button_total_from_rel_items(rel_items, has_more=has_more)
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   m2m:', self.field_name, 'from _prefetched_with_max'
+                print('   m2m:', self.field_name, 'from _prefetched_with_max')
         elif isinstance(getattr(self.item, self.item_access_field_name, None), QuerySet):
             # Non-explicit relationships: manual queryset with a limit
             rel_items = getattr(self.item, self.field_name)[:self.rel_options.max + 1]
             self._and_more_button_total_from_rel_items(rel_items)
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   m2m:', self.field_name, 'from non-explicit relationship manual queryset with limit'
+                print('   m2m:', self.field_name, 'from non-explicit relationship manual queryset with limit')
         else:
             # Retrieve items that have been prefetched with .all()
             rel_items = getRelatedItemsFromItem(self.item, self.item_access_field_name)
@@ -3348,7 +3350,7 @@ class MagiManyToManyModelField(BaseMagiManyToManyModelField):
             if self.and_more_button_total < 0:
                 self.and_more_button_total = 0
             if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-                print '   m2m:', self.field_name, 'from .all() queryset'
+                print('   m2m:', self.field_name, 'from .all() queryset')
         if self.rel_options.max:
             rel_items = rel_items[:self.rel_options.max]
         self.with_images = True
@@ -4280,9 +4282,9 @@ class MagiFields(object):
             self.set_button_fields()
 
         if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-            print self.__class__.__name__
-            print 'Skipped:', andJoin(self.skipped, translated=False)
-            print 'Excluded:', andJoin(self.excluded, translated=False) if self.excluded else u'None'
+            print(self.__class__.__name__)
+            print('Skipped:', andJoin(self.skipped, translated=False))
+            print('Excluded:', andJoin(self.excluded, translated=False) if self.excluded else u'None')
 
     def order_fields(self):
         if (
@@ -4555,12 +4557,12 @@ class MagiFields(object):
         self.dynamically_excluded_fields = self.exclude_fields_after_bond()
 
         if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-            print 'Unbound fields:'
+            print('Unbound fields:')
             if self.fields:
                 for field_name, field in self.fields.items():
-                    print u'  {:30}\t{:30}'.format(field_name, field.__class__.__name__)
+                    print(u'  {:30}\t{:30}'.format(field_name, field.__class__.__name__))
             else:
-                print '  None'
+                print('  None')
         bound_and_displayed = []
         bound_and_not_displayed = OrderedDict()
         for field_name, field in self.fields.items():
@@ -4607,11 +4609,11 @@ class MagiFields(object):
                         reason = '!has_value'
                 bound_and_not_displayed[field.field_name] = reason
         if SHOW_DEBUG and (self.view.view == 'item_view' or SHOW_DEBUG_LIST):
-            print 'Bound and displayed:', andJoin(
-                bound_and_displayed, translated=False) if bound_and_displayed else 'None'
-            print 'Bound and not displayed:', andJoin([
+            print('Bound and displayed:', andJoin(
+                bound_and_displayed, translated=False) if bound_and_displayed else 'None')
+            print('Bound and not displayed:', andJoin([
                 u'{} ({})'.format(key, value) for key, value in bound_and_not_displayed.items()
-            ], translated=False) if bound_and_not_displayed else 'None'
+            ], translated=False) if bound_and_not_displayed else 'None')
 
         self.extra_context()
 

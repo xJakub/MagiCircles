@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import datetime, string
 from collections import OrderedDict
 from django.conf import settings as django_settings
@@ -184,8 +185,8 @@ class MagiDisplay(object):
         is_valid_display_value, parameters = self.to_parameters(item, value, kwargs_parameters)
         if not is_valid_display_value:
             if django_settings.DEBUG:
-                print '[Warning] Invalid value was given to display class {} for field {}'.format(
-                    self.__class__.__name__, parameters.field_name)
+                print('[Warning] Invalid value was given to display class {} for field {}'.format(
+                    self.__class__.__name__, parameters.field_name))
             return parameters.original_value
         if not getattr(self, 'template', None):
             return parameters.display_value

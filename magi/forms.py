@@ -1,4 +1,5 @@
 import re, datetime, pytz
+import six
 from collections import OrderedDict
 from copy import deepcopy
 from dateutil.relativedelta import relativedelta
@@ -120,7 +121,7 @@ from magi.utils import (
     isCharacterModelClass,
 )
 from magi.magidisplay import MagiDisplay, _MagiDisplayMultiple, MagiDisplayLink
-from versions_utils import sortByRelevantVersions
+from .versions_utils import sortByRelevantVersions
 
 forms.Form.form_title = None
 forms.Form.form_image = None
@@ -1092,7 +1093,7 @@ class MagiForm(forms.ModelForm):
                 for field_name in self.userimages_fields:
                     # Upload new images
                     for image in self.cleaned_data.get(field_name, []):
-                        if isinstance(image, int) or isinstance(image, long):
+                        if isinstance(image, six.integer_types):
                             imageObject = models.UserImage.objects.get(id=image)
                         else:
                             imageObject = models.UserImage.objects.create(

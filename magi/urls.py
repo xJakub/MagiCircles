@@ -92,7 +92,7 @@ from magi.utils import (
     isListViewBetaTestOnly,
     mergeDicts,
 )
-from raw import other_sites
+from .raw import other_sites
 
 ############################################################
 # Load dynamic module based on SITE
