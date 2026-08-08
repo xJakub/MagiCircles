@@ -503,7 +503,7 @@ class UserPreferences(MagiModel):
 
 class UserLink(BaseMagiModel):
     alphanumeric = validators.RegexValidator(r'^[0-9a-zA-Z\-_\. /]*$', 'Only alphanumeric and - _ characters are allowed.')
-    owner = models.ForeignKey(User, related_name='links')
+    owner = models.ForeignKey(User, related_name='links', on_delete=models.CASCADE)
     value = models.CharField(string_concat(_('Username'), '/', _('ID')), max_length=64, help_text=_('Write your username only, no URL.'), validators=[alphanumeric])
 
     TYPE_CHOICES = [
@@ -596,7 +596,7 @@ class UserLink(BaseMagiModel):
 class StaffConfiguration(MagiModel):
     collection_name = 'staffconfiguration'
 
-    owner = models.ForeignKey(User, related_name='added_configurations')
+    owner = models.ForeignKey(User, related_name='added_configurations', on_delete=models.CASCADE)
     OWNER_TABLE_HEADER = 'Last updated by'
     key = models.CharField('Key', max_length=100)
     verbose_key = models.CharField('Name', max_length=100)
@@ -815,7 +815,7 @@ class Activity(MagiModel):
 
     creation = models.DateTimeField(auto_now_add=True)
     last_bump = models.DateTimeField(db_index=True, null=True)
-    owner = models.ForeignKey(User, related_name='activities', db_index=True)
+    owner = models.ForeignKey(User, related_name='activities', db_index=True, on_delete=models.CASCADE)
     m_message = models.TextField(_('Message'), null=True)
 
     likes = models.ManyToManyField(User, related_name="liked_activities")
@@ -845,7 +845,7 @@ class Activity(MagiModel):
         # If you're premium, the one month limit doesn't apply
         # Returns: (has_permissions, because_premium)
         a_month_ago = timezone.now() - datetime.timedelta(days=30)
-        if not user.is_authenticated() or not self.is_owner(user):
+        if not user.is_authenticated or not self.is_owner(user):
             return (False, False)
         if user.preferences.is_premium:
             return (True, True)
@@ -855,7 +855,7 @@ class Activity(MagiModel):
 
     def has_permissions_to_ghost_archive(self, user):
         # If you have the manipulate_activities permission
-        return (user.is_authenticated()
+        return (user.is_authenticated
                 and not self.is_owner(user)
                 and user.hasPermission('manipulate_activities'))
 
@@ -1042,7 +1042,7 @@ def getAllowedTags(
                 return False
         # Hidden by user
         if check_hidden_by_user:
-            if request and request.user.is_authenticated():
+            if request and request.user.is_authenticated:
                 if request.user.preferences.hidden_tags:
                     if request.user.preferences.hidden_tags.get(tag_name, False):
                         notAllowedReason(tag_name, tag, 'user', _CHOOSE_HIDDEN_TAGS_MESSAGE)
@@ -1119,7 +1119,7 @@ def updateCachedActivities(user_id):
 class Notification(MagiModel):
     collection_name = 'notification'
 
-    owner = models.ForeignKey(User, related_name='notifications', db_index=True)
+    owner = models.ForeignKey(User, related_name='notifications', db_index=True, on_delete=models.CASCADE)
     creation = models.DateTimeField(auto_now_add=True)
 
     MESSAGES = [
@@ -1209,7 +1209,7 @@ class Report(MagiModel):
     is_suggestededit = models.BooleanField(default=False, db_index=True)
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(User, related_name='reports', null=True)
+    owner = models.ForeignKey(User, related_name='reports', null=True, on_delete=models.CASCADE)
     reported_thing = models.CharField(max_length=300) # Collection name
     reported_thing_title = models.CharField(max_length=300) # Collection title in English
     reported_thing_id = models.PositiveIntegerField() # Pk
@@ -1325,7 +1325,7 @@ BADGE_IMAGE_TINYPNG_SETTINGS = {
 class DonationMonth(MagiModel):
     collection_name = 'donate'
 
-    owner = models.ForeignKey(User, related_name='donation_month_created')
+    owner = models.ForeignKey(User, related_name='donation_month_created', on_delete=models.CASCADE)
     date = models.DateField(default=datetime.datetime.now)
     cost = models.FloatField(default=250)
     goal = DONATORS_GOAL
@@ -1392,9 +1392,9 @@ class Badge(MagiModel):
     ]
 
     date = models.DateField(default=datetime.datetime.now)
-    owner = models.ForeignKey(User, related_name='badges_created')
-    user = models.ForeignKey(User, related_name='badges', db_index=True)
-    donation_month = models.ForeignKey(DonationMonth, related_name='badges', null=True)
+    owner = models.ForeignKey(User, related_name='badges_created', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='badges', db_index=True, on_delete=models.CASCADE)
+    donation_month = models.ForeignKey(DonationMonth, related_name='badges', null=True, on_delete=models.CASCADE)
     name = models.CharField(_('Title'), max_length=50, null=True)
 
     m_description = models.TextField(_('Description'), null=True)
@@ -1475,7 +1475,7 @@ class Badge(MagiModel):
 class Prize(MagiModel):
     collection_name = 'prize'
 
-    owner = models.ForeignKey(User, related_name='added_prizes')
+    owner = models.ForeignKey(User, related_name='added_prizes', on_delete=models.CASCADE)
     name = models.CharField('Prize name', max_length=100)
     image = models.ImageField('Prize image', upload_to=uploadItem('prize'), max_length=255)
     image2 = models.ImageField('2nd image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)

@@ -15,7 +15,7 @@ from django.conf import settings as django_settings
 from django.core.files.temp import NamedTemporaryFile
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
-from django.core.urlresolvers import resolve
+from django.urls import resolve
 from django.core.validators import RegexValidator
 from django.http import Http404
 from django.utils.http import urlquote
@@ -653,7 +653,7 @@ def getStaffConfigurationCache(model_class, key, default=None, is_json=True):
     if value == tmp_default:
         value = default
         model_class.objects.create(
-            owner=get_default_owner(model_class._meta.get_field('owner').rel.to), key=key,
+            owner=get_default_owner(model_class._meta.get_field('owner').remote_field.model), key=key,
             value=json.dumps(default), verbose_key='Internal cache: {}. Do not edit manually.'.format(key))
     return value
 
@@ -1016,7 +1016,7 @@ def globalContext(request=None, email=False):
 
     if request:
         context['ajax_modal_only'] = context['ajax'] and 'ajax_modal_only' in request.GET
-        context['is_authenticated'] = request.user.is_authenticated()
+        context['is_authenticated'] = request.user.is_authenticated
         context['request'] = request
         context['current'] = resolve(request.path_info).url_name
         context['current_url'] = request.get_full_path() + ('?' if request.get_full_path()[-1] == '/' else '&')
@@ -1360,7 +1360,7 @@ def videoJsonLd(video_url, video_title, video_description, upload_date, context=
 
 def getAccountIdsFromSession(request):
     # /!\ Can't be called at global level
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return []
     if 'account_ids' not in request.session:
         request.session['account_ids'] = [
@@ -1374,7 +1374,7 @@ def getAccountIdsFromSession(request):
 
 def getAccountVersionsFromSession(request):
     # /!\ Can't be called at global level
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return []
     if 'account_versions' not in request.session:
         request.session['account_versions'] = [
@@ -1388,7 +1388,7 @@ def getAccountVersionsFromSession(request):
 
 def getAccountTypesFromSession(request):
     # /!\ Can't be called at global level
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return []
     if 'account_types' not in request.session:
         request.session['account_types'] = {
@@ -1727,9 +1727,9 @@ def filterRealAccounts(queryset):
     return queryset
 
 def filterRealCollectiblesPerAccount(queryset):
-    if modelHasField(queryset.model.account.field.rel.to, 'is_playground'):
+    if modelHasField(queryset.model.account.field.remote_field.model, 'is_playground'):
         queryset = queryset.exclude(account__is_playground=True)
-    if modelHasField(queryset.model.account.field.rel.to, 'is_hidden_from_leaderboard'):
+    if modelHasField(queryset.model.account.field.remote_field.model, 'is_hidden_from_leaderboard'):
         queryset = queryset.exclude(account__is_hidden_from_leaderboard=True)
     return queryset
 
@@ -2885,7 +2885,7 @@ def redirectToProfile(request, account=None):
     raise HttpRedirectException(u'/user/{}/{}/'.format(request.user.id, request.user.username, '#{}'.format(account.id) if account else ''))
 
 def redirectWhenNotAuthenticated(request, context, next_title=None):
-    if request and not request.user.is_authenticated():
+    if request and not request.user.is_authenticated:
         current_url = context.get('current_url', request.get_full_path() if request else '')
         if current_url.startswith('/ajax/'):
             raise HttpRedirectException(u'/signup/')
@@ -3084,7 +3084,7 @@ def getModelOfRelatedItem(
     if field:
         if isinstance(field, ForeignObjectRel):
             return _return(field.related_model, field, isinstance(field, models.ManyToManyRel))
-        return _return(field.rel.to, field, isinstance(field, models.ManyToManyField))
+        return _return(field.remote_field.model, field, isinstance(field, models.ManyToManyField))
     # Reverse related objects (forward and reverse relations both come from get_fields();
     # filtering to ForeignObjectRel instances covers what get_all_related_objects()/
     # get_all_related_many_to_many_objects() used to, before their removal in Django 1.10)
@@ -3301,7 +3301,7 @@ def getAllModelFields(model, only_related_fields=False):
                 # Model fields
                 ([ f for f in (
                     list(model._meta.concrete_fields)
-                    + [f for f in model._meta.virtual_fields if isinstance(f, ModelField)]
+                    + [f for f in model._meta.private_fields if isinstance(f, ModelField)]
                 ) if (not only_related_fields
                       or isinstance(f, models.ForeignKey)
                       or isinstance(f, models.OneToOneField))
@@ -3500,7 +3500,7 @@ def addRelatedCaches(model_class, caches):
             details['to_fields'] = {}
         model_field = modelGetField(model_class, cache_name)
         if model_field:
-            rel_model_class = model_field.rel.to
+            rel_model_class = model_field.remote_field.model
             if not getattr(rel_model_class, 'REVERSE_RELATED_CACHES', []):
                 rel_model_class.REVERSE_RELATED_CACHES = []
             is_m2m = isinstance(model_field, models.ManyToManyField)
@@ -3510,7 +3510,7 @@ def addRelatedCaches(model_class, caches):
             # and drives the forward-side caching below.
             reverse_is_many = not isinstance(model_field, models.OneToOneField)
             rel_model_class.REVERSE_RELATED_CACHES.append((
-                model_field.rel.get_accessor_name(),
+                model_field.remote_field.get_accessor_name(),
                 cache_name, reverse_is_many,
             ))
             label = notTranslatedWarning(model_field._verbose_name)
@@ -3878,7 +3878,7 @@ class ManyToManyCSVField(forms_CharField):
         self.m2m_model_class = model_class
         self.m2m_field_name = field_name
         self.m2m_lookup_field_name = lookup_field_name
-        self.m2m_items_model_class = getattr(self.m2m_model_class, self.m2m_field_name).field.rel.to
+        self.m2m_items_model_class = getattr(self.m2m_model_class, self.m2m_field_name).field.remote_field.model
         self.queryset = queryset or self.m2m_items_model_class.objects.all()
         self._known_items_by_pk = {}
         help_text = _('Separate {things} with commas. Example: "Apple, Orange"').format(
@@ -5392,7 +5392,7 @@ def artSettingsToGetParameters(settings):
     return parameters
 
 def artPreviewButtons(view, buttons, request, item, images, get_parameter='url', settings=None):
-    if (not request.user.is_authenticated()
+    if (not request.user.is_authenticated
         or not request.user.hasPermission('manage_main_items')):
         return
     for field_name, in_use in (images if isinstance(images, dict) else { k: None for k in images }).items():
@@ -5454,7 +5454,7 @@ def create_user(user_model, username, email=None, password=None, language='en', 
         email=email or u'{}@yopmail.com'.format(username),
         password=username * 2,
     )
-    preferences = user_model.preferences.rel.related_model.objects.create(
+    preferences = user_model.preferences.related.related_model.objects.create(
         user=new_user,
         i_language=language,
     )
@@ -5485,7 +5485,7 @@ def adventCalendar(request, context):
     If 25th:
     - add badge
     """
-    if not request.user.is_authenticated():
+    if not request.user.is_authenticated:
         return
     today = datetime.date.today()
     if today.month != 12 or today.day > 26:

@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
                 ('_cache_owner_preferences_i_status', models.CharField(max_length=12, null=True)),
                 ('_cache_owner_preferences_twitter', models.CharField(max_length=32, null=True, blank=True)),
                 ('_cache_owner_color', models.CharField(max_length=100, null=True, blank=True)),
-                ('owner', models.ForeignKey(related_name='books', to=settings.AUTH_USER_MODEL)),
+                ('owner', models.ForeignKey(related_name='books', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('_cache_owner_preferences_i_status', models.CharField(max_length=12, null=True)),
                 ('_cache_owner_preferences_twitter', models.CharField(max_length=32, null=True, blank=True)),
                 ('_cache_owner_color', models.CharField(max_length=100, null=True, blank=True)),
-                ('book', models.ForeignKey(related_name='chapters', to='test.Book')),
+                ('book', models.ForeignKey(related_name='chapters', to='test.Book', on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
                 ('_cache_owner_preferences_i_status', models.CharField(max_length=12, null=True)),
                 ('_cache_owner_preferences_twitter', models.CharField(max_length=32, null=True, blank=True)),
                 ('_cache_owner_color', models.CharField(max_length=100, null=True, blank=True)),
-                ('chapter', models.ForeignKey(related_name='paragraphs', to='test.Chapter')),
+                ('chapter', models.ForeignKey(related_name='paragraphs', to='test.Chapter', on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,

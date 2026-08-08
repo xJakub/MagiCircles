@@ -798,7 +798,7 @@ class MagiField(object):
         self.model = type(item)
         self.context = context
         self.request = context.get('request', getattr(item, 'request', None))
-        self.is_authenticated = self.request and self.request.user.is_authenticated()
+        self.is_authenticated = self.request and self.request.user.is_authenticated
 
         self.bound_init_before_item_options()
 
@@ -1233,7 +1233,7 @@ class MagiModelField(MagiField):
             and (isinstance(self.model_field, models.models.ImageField)
                  or isinstance(self.model_field, models.models.FileField)
                  or (isinstance(self.model_field, models.models.ManyToManyField)
-                     and issubclass(self.model_field.rel.to, models.UserImage)))
+                     and issubclass(self.model_field.remote_field.model, models.UserImage)))
         )
 
     ############################################################
@@ -2902,7 +2902,7 @@ class MagiForeignKeyModelField(BaseMagiRelatedField):
     def get_rel_model_class(self):
         if isinstance(self.model_field, ForeignKeyRelatedDetails):
             return getModelOfRelatedItem(self.model, self.item_access_field_name)
-        return self.model_field.rel.to
+        return self.model_field.remote_field.model
 
     ############################################################
     # Value
@@ -3096,7 +3096,7 @@ class BaseMagiManyToManyModelField(BaseMagiRelatedField):
 
     def get_rel_model_class(self):
         if isinstance(self.model_field, models.models.ManyToManyField):
-            return self.model_field.rel.to
+            return self.model_field.remote_field.model
         elif isinstance(self.model_field, ForeignObjectRel):
             return self.model_field.related_model
         elif isinstance(self.model_field, ReverseRelatedDetails):
@@ -4394,7 +4394,7 @@ class MagiFields(object):
             if isinstance(model_field, ForeignObjectRel):
                 subfield_model_field = modelGetField(model_field.related_model, subfield_field_name)
             else:
-                subfield_model_field = modelGetField(model_field.rel.to, subfield_field_name)
+                subfield_model_field = modelGetField(model_field.remote_field.model, subfield_field_name)
             if subfield_model_field:
                 new_subfield_field_name = u'{}__{}'.format(field_name, subfield_field_name)
                 self.set_unbound_field(

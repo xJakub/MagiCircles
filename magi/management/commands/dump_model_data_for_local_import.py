@@ -28,10 +28,10 @@ def get_fields(model):
         if field_name in ['id', 'owner']:
             continue
         if isinstance(field, related.ForeignKey):
-            if field.rel.to != model: # Avoid circular dependencies
-                foreign_keys[field_name] = field.rel.to
+            if field.remote_field.model != model: # Avoid circular dependencies
+                foreign_keys[field_name] = field.remote_field.model
         elif isinstance(field, related.ManyToManyField):
-            many_to_many[field_name] = field.rel.to
+            many_to_many[field_name] = field.remote_field.model
         else:
             if field.unique:
                 unique_fields.append(field_name)

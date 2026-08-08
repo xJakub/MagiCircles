@@ -554,7 +554,7 @@ DEFAULT_ENABLED_NAVBAR_LISTS = OrderedDict([
         ],
     }),
     ('you', {
-        'title': lambda context: context['request'].user.username if context['request'].user.is_authenticated() else _('You'),
+        'title': lambda context: context['request'].user.username if context['request'].user.is_authenticated else _('You'),
         'icon': 'profile',
         'order': ['user', 'privatemessage_list', 'settings', 'logout', 'login', 'signup'],
     }),
@@ -661,7 +661,7 @@ DEFAULT_ACTIVITY_TAGS = [
             _('You need to be over 18 years old.'),
             (_('You can change your birthdate in your settings.')
              if not r.user.preferences.age else u''),
-        ) if r.user.is_authenticated() and (r.user.preferences.age is None or r.user.preferences.age < 18)
+        ) if r.user.is_authenticated and (r.user.preferences.age is None or r.user.preferences.age < 18)
         else True,
     }),
 ]

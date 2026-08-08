@@ -10,7 +10,7 @@ from magi.utils import uploadItem
 class Account(MagiModel):
     collection_name = 'account'
 
-    owner = models.ForeignKey(User, related_name='accounts')
+    owner = models.ForeignKey(User, related_name='accounts', on_delete=models.CASCADE)
     creation = models.DateTimeField(auto_now_add=True)
     level = models.PositiveIntegerField(_("Level"), null=True)
 
@@ -119,10 +119,10 @@ class CCSVTest(BaseMagiModel):
     c_tags = models.TextField(blank=True, null=True)
 
 class Book(CacheOwner):
-    owner = models.ForeignKey(User, related_name='books')
+    owner = models.ForeignKey(User, related_name='books', on_delete=models.CASCADE)
 
 class Chapter(CacheOwner):
-    book = models.ForeignKey(Book, related_name='chapters')
+    book = models.ForeignKey(Book, related_name='chapters', on_delete=models.CASCADE)
     fk_as_owner = 'book'
 
     @property
@@ -134,7 +134,7 @@ class Chapter(CacheOwner):
         return self.book.owner_id
 
 class Paragraph(CacheOwner):
-    chapter = models.ForeignKey(Chapter, related_name='paragraphs')
+    chapter = models.ForeignKey(Chapter, related_name='paragraphs', on_delete=models.CASCADE)
     fk_as_owner = 'chapter'
     selector_to_owner = classmethod(justReturn('chapter__book__owner'))
 
@@ -149,16 +149,16 @@ class Paragraph(CacheOwner):
 class Idol(MagiModel):
     collection_name = 'idol'
 
-    owner = models.ForeignKey(User, related_name='added_idols')
+    owner = models.ForeignKey(User, related_name='added_idols', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True)
     japanese_name = models.CharField(max_length=100, null=True)
     d_names = models.TextField(null=True)
     image = models.ImageField(upload_to=uploadItem('idols'))
 
 class Card(MagiModel):
-    owner = models.ForeignKey(User, related_name='added_cards')
+    owner = models.ForeignKey(User, related_name='added_cards', on_delete=models.CASCADE)
 
-    idol = models.ForeignKey(Idol, related_name='cards', null=True)
+    idol = models.ForeignKey(Idol, related_name='cards', null=True, on_delete=models.CASCADE)
 
     # Cache idol
 
@@ -251,11 +251,11 @@ class Card(MagiModel):
 class Gacha(MagiModel):
     collection_name = 'gacha'
 
-    owner = models.ForeignKey(User, related_name='added_gachas')
+    owner = models.ForeignKey(User, related_name='added_gachas', on_delete=models.CASCADE)
     name = models.CharField(max_length=100, unique=True)
     image = models.ImageField(upload_to=uploadItem('gacha'))
 
-    card = models.ForeignKey(Card, related_name='gachas', null=True)
+    card = models.ForeignKey(Card, related_name='gachas', null=True, on_delete=models.CASCADE)
 
     ATTRIBUTE_CHOICES = (
         'smile',

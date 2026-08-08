@@ -110,7 +110,7 @@ def to_cached_preferences(
 ):
     try:
         preferences_model = next(
-            rel.related_model for rel in item._meta.get_field('owner').rel.to._meta.get_fields()
+            rel.related_model for rel in item._meta.get_field('owner').remote_field.model._meta.get_fields()
             if isinstance(rel, ForeignObjectRel) and rel.get_accessor_name() == 'preferences'
         )
     except StopIteration:
@@ -208,7 +208,7 @@ class CacheOwner(MagiModel):
 class BaseAccount(CacheOwner):
     collection_name = 'account'
 
-    owner = models.ForeignKey(User, related_name='accounts')
+    owner = models.ForeignKey(User, related_name='accounts', on_delete=models.CASCADE)
     creation = models.DateTimeField(_('Join date'), auto_now_add=True)
     nickname = models.CharField(_('Nickname'), max_length=200, null=True, help_text=_('Give a nickname to your account to easily differentiate it from your other accounts when you\'re managing them.'))
     start_date = models.DateField(_('Start date'), null=True, validators=[PastOnlyValidator])
@@ -686,7 +686,7 @@ class _BaseEvent(MagiModel):
     collection_name = 'event'
     TRANSLATED_FIELDS = ['name', 'm_description']
 
-    owner = models.ForeignKey(User, related_name='added_%(class)ss')
+    owner = models.ForeignKey(User, related_name='added_%(class)ss', on_delete=models.CASCADE)
 
     ############################################################
     # Name
@@ -777,7 +777,7 @@ def getBaseEventWithVersions(
 class BaseEventParticipation(AccountAsOwnerModel, AutoImageFromParent):
     collection_name = 'eventparticipation'
 
-    account = models.ForeignKey('{}.Account'.format(django_settings.SITE), related_name='%(class)ss', verbose_name=_('Account'))
+    account = models.ForeignKey('{}.Account'.format(django_settings.SITE), related_name='%(class)ss', verbose_name=_('Account'), on_delete=models.CASCADE)
 
     class Meta(MagiModel.Meta):
         abstract = True

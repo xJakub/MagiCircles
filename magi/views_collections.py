@@ -43,7 +43,7 @@ from magi.forms import ConfirmDelete, filter_ids
 def _redirect_on_high_traffic(view, request, ajax=False):
     if (getattr(django_settings, 'HIGH_TRAFFIC', False)
         and view.disable_on_high_traffic
-        and not request.user.is_authenticated()):
+        and not request.user.is_authenticated):
         raise HttpRedirectException(u'{}/hightraffic/'.format('/ajax' if ajax else ''))
 
 def _get_share_image(context, collection_view, item=None):
@@ -109,7 +109,7 @@ def item_view(request, name, collection, pk=None, reverse=None, ajax=False, item
     context['item'].request = request
     collection.item_view.check_owner_permissions(request, context, context['item'])
 
-    if request.user.is_authenticated() and collection.blockable:
+    if request.user.is_authenticated and collection.blockable:
         # Blocked
         if context['item'].owner_id in request.user.preferences.cached_blocked_ids:
             if ajax:
@@ -265,7 +265,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
 
     if (shortcut_url == ''
         and context.get('launch_date', None)
-        and (not request.user.is_authenticated()
+        and (not request.user.is_authenticated
              or not request.user.hasPermission('access_site_before_launch'))):
         raise HttpRedirectException('/prelaunch/')
 
@@ -429,7 +429,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
         and ((collection.list_view.filter_form
               and filters['ordering'] in dict(
                   getattr(collection.list_view.filter_form, 'ordering_fields', [])))
-             or (request.user.is_authenticated()
+             or (request.user.is_authenticated
                  and request.user.hasPermission('order_by_any_field')))):
         ordering_fields = filters['ordering'].split(',')
         is_reverse = bool(filters.get('reverse_order', False))
@@ -822,7 +822,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
 
         # If the user blocked whoever owns this item, it will be hidden with a button to unblock
         # If the user was blocked by whoever owns this item, it will be hidden and the user won't know
-        if request.user.is_authenticated() and collection.blockable:
+        if request.user.is_authenticated and collection.blockable:
             if item.owner_id in request.user.preferences.cached_blocked_ids:
                 item.blocked = True
                 try:

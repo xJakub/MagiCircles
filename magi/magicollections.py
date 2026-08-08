@@ -158,7 +158,7 @@ class _View(object):
         # It's OK if context is empty, but request is required
         if not self.enabled:
             raise Http404
-        if self.logout_required and request.user.is_authenticated():
+        if self.logout_required and request.user.is_authenticated:
             raise PermissionDenied()
         if self.authentication_required:
             redirectWhenNotAuthenticated(request, context, next_title=self.get_page_title())
@@ -406,7 +406,7 @@ class MagiCollection(object):
                     and request and getattr(request, '_item_view_pk', None)
                     and prefetched not in already_prefetched
                     and prefetched not in view.fields_prefetched_even_on_high_traffic
-                    and not request.user.is_authenticated()
+                    and not request.user.is_authenticated
                     and not view.uses_deprecated_to_fields()):
                     if not hasattr(request, '_not_prefetched_for_high_traffic'):
                         request._not_prefetched_for_high_traffic = []
@@ -481,7 +481,7 @@ class MagiCollection(object):
         if not request:
             return queryset
         # Select related total collectible for authenticated user
-        if request.user.is_authenticated() and self.collectible_collections:
+        if request.user.is_authenticated and self.collectible_collections:
             if not getattr(request, 'show_collect_button', False):
                 return queryset
             for name, collection in self.collectible_collections.items():
@@ -566,7 +566,7 @@ class MagiCollection(object):
         """
         parent_collection = self
         item_field_name = parent_collection.model_name
-        item_field_model_class = model_class._meta.get_field(item_field_name).rel.to
+        item_field_model_class = model_class._meta.get_field(item_field_name).remote_field.model
         item_field_name_id = u'{}_{}'.format(item_field_name, item_field_model_class._meta.pk.column)
 
         class _CollectibleForm(forms.AutoForm):
@@ -988,7 +988,7 @@ class MagiCollection(object):
                     if (context['ajax']
                         and (('account' in request.GET
                               and int(request.GET['account']) in getAccountIdsFromSession(request))
-                             or ('owner' in request.GET and request.user.is_authenticated()
+                             or ('owner' in request.GET and request.user.is_authenticated
                                  and int(request.GET['owner']) == request.user.id))):
                         if 'account' in request.GET:
                             account_id = int(request.GET['account'])
@@ -1328,9 +1328,9 @@ class MagiCollection(object):
             if 'verbose_name' not in related_fields[m.name]:
                 related_fields[m.name]['verbose_name'] = modelFieldVerbose(type(item), m.name)
             if 'collection_name' not in related_fields[m.name]:
-                related_fields[m.name]['collection_name'] = getattr(m.rel.to, 'collection_name', None)
+                related_fields[m.name]['collection_name'] = getattr(m.remote_field.model, 'collection_name', None)
             if 'filter_field_name' not in related_fields[m.name]:
-                related_fields[m.name]['filter_field_name'] = m.rel.get_accessor_name()
+                related_fields[m.name]['filter_field_name'] = m.remote_field.get_accessor_name()
 
         #   from related objects
         #   + from many to many related objects
@@ -1662,7 +1662,7 @@ class MagiCollection(object):
                     cache = getattr(item, 'cached_' + field_name, None)
                 if not cache:
                     continue
-                collection_name = getattr(field.rel.to, 'collection_name', None)
+                collection_name = getattr(field.remote_field.model, 'collection_name', None)
                 collection = getMagiCollection(collection_name) if collection_name else None
                 allow_ajax = not collection or collection.item_view.ajax
                 if collection:
@@ -1881,7 +1881,7 @@ class MagiCollection(object):
                 or not collectible_collection.add_view.enabled):
                 continue
             extra_attributes = {}
-            quick_add_to_collection = collectible_collection.add_view.quick_add_to_collection(request) if request.user.is_authenticated() else False
+            quick_add_to_collection = collectible_collection.add_view.quick_add_to_collection(request) if request.user.is_authenticated else False
             url_to_collectible_add_with_item = lambda url: (
                 u'{url}?{item_field_name_id}={item_pk}&{variables}'.format(
                     url=url, item_field_name_id=collectible_collection.item_field_name_id,
@@ -1947,7 +1947,7 @@ class MagiCollection(object):
                     extra_attributes['alt-message'] = delete_sentence
             if (collectible_collection.add_view.authentication_required
                 and not collectible_collection.add_view.requires_permissions()
-                and not request.user.is_authenticated()):
+                and not request.user.is_authenticated):
                 buttons[name]['has_permissions'] = True
                 buttons[name]['url'] = u'/signup/?next={url}&next_title={title}'.format(
                     url=url_to_collectible_add_with_item(collectible_collection.get_add_url()),
@@ -1966,7 +1966,7 @@ class MagiCollection(object):
             and context.get('view', None) == 'set_background'):
             set_base_button('set_background')
             buttons['set_background'].update({
-                'has_permissions': request.user.is_authenticated(),
+                'has_permissions': request.user.is_authenticated,
                 'title': _('Select {}').format(_('Background').lower()),
                 'icon': 'checked',
                 'url': u'/set_background/{}/'.format(item.pk),
@@ -1993,7 +1993,7 @@ class MagiCollection(object):
             if current_nth:
                 set_base_button('unset_favorite_character')
                 buttons['unset_favorite_character'].update({
-                    'has_permissions': request.user.is_authenticated(),
+                    'has_permissions': request.user.is_authenticated,
                     'title': (
                         _('Clear')
                         if total_favoritable == 1
@@ -2027,7 +2027,7 @@ class MagiCollection(object):
                     else:
                         url = u'/set_favorite_character/{}/{}/'.format(key, item.pk)
                     buttons['set_favorite_character'].update({
-                        'has_permissions': request.user.is_authenticated(),
+                        'has_permissions': request.user.is_authenticated,
                         'title': title(label),
                         'button_title': button_title(label),
                         'icon': icon,
@@ -2056,7 +2056,7 @@ class MagiCollection(object):
                         button_name = u'set_favorite_character-{}'.format(nth)
                         set_base_button(button_name)
                         buttons[button_name].update({
-                            'has_permissions': request.user.is_authenticated(),
+                            'has_permissions': request.user.is_authenticated,
                             'title': title(label),
                             'button_title': button_title(_(ordinalNumber(nth))),
                             'icon': icon,
@@ -2082,7 +2082,7 @@ class MagiCollection(object):
             buttons['edit']['icon'] = self.edit_view.view_icon
             if (self.edit_view.authentication_required
                 and not self.edit_view.requires_permissions()
-                and not request.user.is_authenticated()):
+                and not request.user.is_authenticated):
                 buttons['edit']['has_permissions'] = True
                 buttons['edit']['url'] = u'/signup/?next={url}&next_title={title}'.format(
                     url=item.edit_url,
@@ -2093,7 +2093,7 @@ class MagiCollection(object):
                 if self.types:
                     buttons['edit']['has_permissions'] = buttons['edit']['has_permissions'] and self.edit_view.has_type_permissions(request, context, type=item.type, item=item)
                 if ((view.show_edit_button_permissions_only
-                     and (not request.user.is_authenticated()
+                     and (not request.user.is_authenticated
                           or not hasPermissions(request.user, view.show_edit_button_permissions_only)))
                     and buttons['edit']['has_permissions']
                     and not item.is_owner(request.user)):
@@ -2136,7 +2136,7 @@ class MagiCollection(object):
             buttons['report']['show'] = view.show_report_button
             buttons['report']['title'] = item.report_sentence
             buttons['report']['icon'] = 'warning'
-            buttons['report']['has_permissions'] = (not request.user.is_authenticated()
+            buttons['report']['has_permissions'] = (not request.user.is_authenticated
                                                     or item.owner_id != request.user.id)
             buttons['report']['url'] = item.report_url
             buttons['report']['open_in_new_window'] = True
@@ -2147,7 +2147,7 @@ class MagiCollection(object):
             buttons['suggest_edit']['title'] = item.suggest_edit_sentence
             buttons['suggest_edit']['icon'] = 'edit'
             buttons['suggest_edit']['has_permissions'] = (
-                not request.user.is_authenticated()
+                not request.user.is_authenticated
                 or (item.owner_id != request.user.id and not buttons.get('edit', {}).get('has_permissions', False))
             )
             buttons['suggest_edit']['url'] = item.suggest_edit_url
@@ -2478,7 +2478,7 @@ class MagiCollection(object):
                 }
                 if (self.collection.add_view.authentication_required
                     and not self.collection.add_view.requires_permissions()
-                    and not request.user.is_authenticated()):
+                    and not request.user.is_authenticated):
                     for_all_buttons['has_permissions'] = True
                 if self.collection.types:
                     for (type, button) in self.collection.types.items():
@@ -3111,7 +3111,7 @@ class MagiCollection(object):
             return { 'pk': pk }
 
         def check_translate_permissions(self, request, context):
-            if not request.user.is_authenticated():
+            if not request.user.is_authenticated:
                 raise PermissionDenied()
             if not hasPermission(request.user, 'translate_items'):
                 raise PermissionDenied()
@@ -3260,7 +3260,7 @@ class SubItemCollection(MainItemCollection):
         def has_permissions_to_see_in_navbar(self, request, context):
             return (
                 super(SubItemCollection.ListView, self).has_permissions_to_see_in_navbar(request, context)
-                and request.user.is_authenticated()
+                and request.user.is_authenticated
                 and (request.user.hasOneOfPermissions([
                     'manage_main_items',
                     'translate_items',
@@ -3295,7 +3295,7 @@ class CommunitySubItemCollection(_base_CommunitySubItemCollection):
         def has_permissions_to_see_in_navbar(self, request, context):
             return (
                 super(CommunitySubItemCollection.ListView, self).has_permissions_to_see_in_navbar(request, context)
-                and request.user.is_authenticated()
+                and request.user.is_authenticated
             )
 
 ############################################################
@@ -3734,7 +3734,7 @@ class UserCollection(MagiCollection):
                 Prefetch('links', queryset=models.UserLink.objects.order_by('-i_relevance'), to_attr='all_links'),
             )
 
-            if request and request.user.is_authenticated():
+            if request and request.user.is_authenticated:
                 queryset = queryset.extra(select={
                     # Used by "follow" button + "private message" button
                     'followed': 'SELECT COUNT(*) FROM {table}_following WHERE userpreferences_id = {id} AND user_id = auth_user.id'.format(
@@ -3758,7 +3758,7 @@ class UserCollection(MagiCollection):
             reputation = user.preferences.cached_reputation
 
             # Private message button (should always be first + not a 'btn-link')
-            if 'privatemessage' in context['all_enabled'] and request.user.is_authenticated():
+            if 'privatemessage' in context['all_enabled'] and request.user.is_authenticated:
                 buttons = OrderedDict([
                     ('privatemessage', {
                         'classes': [cls.replace('-link', '') for cls in classes],
@@ -3775,7 +3775,7 @@ class UserCollection(MagiCollection):
                 ] + list(buttons.items()))
 
             # Block button
-            if request.user.is_authenticated() and user.id != request.user.id:
+            if request.user.is_authenticated and user.id != request.user.id:
                 buttons['block'] = {
                     'show': True,
                     'classes': classes,
@@ -3786,7 +3786,7 @@ class UserCollection(MagiCollection):
                 }
 
             # Mark email address as invalid button
-            if (request.user.is_authenticated() and user.id != request.user.id
+            if (request.user.is_authenticated and user.id != request.user.id
                 and request.user.hasPermission('mark_email_addresses_invalid')):
                 baseButton(
                     button_name='mark_email_addresses_invalid',
@@ -3800,7 +3800,7 @@ class UserCollection(MagiCollection):
                     })
 
             # Edit roles button
-            if (request.user.is_authenticated() and request.user.hasPermission('edit_roles')):
+            if (request.user.is_authenticated and request.user.hasPermission('edit_roles')):
                 baseButton(
                     button_name='edit_roles', buttons=buttons, classes=classes + [ 'staff-only' ], extras={
                         'title': 'Edit roles',
@@ -3812,7 +3812,7 @@ class UserCollection(MagiCollection):
                     })
 
             # Edit donator status button
-            if (request.user.is_authenticated() and request.user.hasPermission('edit_donator_status')):
+            if (request.user.is_authenticated and request.user.hasPermission('edit_donator_status')):
                 baseButton(
                     button_name='edit_donator_status', buttons=buttons, classes=classes + [ 'staff-only' ], extras={
                         'title': 'Edit donator status',
@@ -3824,7 +3824,7 @@ class UserCollection(MagiCollection):
                     })
 
             # Reputation info button
-            if request.user.is_authenticated() and request.user.hasPermission('see_reputation'):
+            if request.user.is_authenticated and request.user.hasPermission('see_reputation'):
                 buttons['reputation'] = {
                     'classes': classes + ['staff-only', 'disabled'],
                     'show': True,
@@ -4439,7 +4439,7 @@ class ActivityCollection(MagiCollection):
     ])
 
     def _get_queryset_for_list_and_item(self, queryset, request=None):
-        if request and request.user.is_authenticated():
+        if request and request.user.is_authenticated:
             queryset = queryset.extra(select={
                 'liked': 'SELECT COUNT(*) FROM {activity_table_name}_likes WHERE activity_id = {activity_table_name}.id AND user_id = {user_id}'.format(
                     activity_table_name=models.Activity._meta.db_table,
@@ -4464,7 +4464,7 @@ class ActivityCollection(MagiCollection):
         buttons = super(ActivityCollection, self).buttons_per_item(view, request, context, item)
         classes = view.get_item_buttons_classes(request, context, item=item)
         js_buttons = []
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
 
             # Edit button
             if ('edit' in buttons
@@ -4607,20 +4607,20 @@ class ActivityCollection(MagiCollection):
                 queryset=queryset, parameters=parameters, request=request)
             queryset = self.collection._get_queryset_for_list_and_item(queryset, request=request)
             # Exclude hidden tags
-            if request and request.user.is_authenticated() and request.user.preferences.hidden_tags:
+            if request and request.user.is_authenticated and request.user.preferences.hidden_tags:
                 for tag, hidden in request.user.preferences.hidden_tags.items():
                     if hidden:
                         queryset = queryset.exclude(c_tags__contains=u'"{}"'.format(tag))
             else:
                 queryset = queryset.exclude(_cache_hidden_by_default=True)
             # Get who archived if staff
-            if request and request.user.is_authenticated() and request.user.is_staff:
+            if request and request.user.is_authenticated and request.user.is_staff:
                 queryset = queryset.select_related('archived_by_staff')
             return queryset
 
         def top_buttons(self, request, context):
             buttons = super(ActivityCollection.ListView, self).top_buttons(request, context)
-            if request.user.is_authenticated() and context['filter_form'].active_tab in ['new', 'hot']:
+            if request.user.is_authenticated and context['filter_form'].active_tab in ['new', 'hot']:
                 buttons['warn'] = {
                     'show': True,
                     'has_permissions': True,
@@ -4655,7 +4655,7 @@ class ActivityCollection(MagiCollection):
 
             # Activities tabs
 
-            if context['request'].user.is_authenticated():
+            if context['request'].user.is_authenticated:
                 context['activity_tabs'] = HOME_ACTIVITY_TABS
                 context['active_activity_tab_name'] = context['filter_form'].active_tab
                 if context['active_activity_tab_name']:
@@ -4913,7 +4913,7 @@ class BadgeCollection(MagiCollection):
             if of_user:
                 if (context['request'].LANGUAGE_CODE not in LANGUAGES_CANT_SPEAK_ENGLISH
                     and 'help' in context['all_enabled']
-                    and request.user.is_authenticated()
+                    and request.user.is_authenticated
                     and str(request.user.id) == of_user):
                     buttons['get_badges'] = {
                         'show': True, 'has_permissions': True,
@@ -4934,7 +4934,7 @@ class BadgeCollection(MagiCollection):
             super(BadgeCollection.ListView, self).check_permissions(request, context)
             if context['current'].startswith(u'{}_list'.format(self.collection.name)):
                 if (hasattr(request, 'GET') and 'of_user' not in request.GET
-                    and (not request.user.is_authenticated()
+                    and (not request.user.is_authenticated
                          or not hasOneOfPermissions(
                              request.user, self.collection.AddView.one_of_permissions_required))):
                     raise PermissionDenied()
@@ -5197,7 +5197,7 @@ class DonateCollection(MagiCollection):
             request = context['request']
             context['show_paypal'] = 'show_paypal' in request.GET
             context['donate_image'] = DONATE_IMAGE
-            if request.user.is_authenticated() and request.user.hasPermission('manage_donation_months'):
+            if request.user.is_authenticated and request.user.hasPermission('manage_donation_months'):
                 context['show_donator_details'] = True
             context['consider_donating_sentence'] = _('If you like {site_name}, please consider donating').format(
                 site_name=getSiteName())

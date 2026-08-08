@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('creation', models.DateTimeField(auto_now_add=True)),
                 ('level', models.PositiveIntegerField(null=True, verbose_name='Level')),
-                ('owner', models.ForeignKey(related_name='accounts', to=settings.AUTH_USER_MODEL)),
+                ('owner', models.ForeignKey(related_name='accounts', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'abstract': False,

@@ -128,7 +128,7 @@ def get_selector_to_owner(cls):
     return 'owner'
 
 def get_owner_model_class(cls):
-    return cls._meta.get_field(cls.fk_as_owner or 'owner').rel.to
+    return cls._meta.get_field(cls.fk_as_owner or 'owner').remote_field.model
 
 def get_owners_queryset(cls, user):
     if not cls.fk_as_owner:
@@ -382,7 +382,7 @@ class BaseMagiModel(models.Model):
         # Get original model class for cached thing
         try:
             _field = self._meta.get_field(field_name)
-            model_class = _field.to if isinstance(_field, ForeignObjectRel) else _field.rel.to
+            model_class = _field.related_model if isinstance(_field, ForeignObjectRel) else _field.remote_field.model
         except FieldDoesNotExist: model_class = None
         model_class = getattr(self, u'_cache_{}_fk_class'.format(field_name), model_class)
         # Get id
