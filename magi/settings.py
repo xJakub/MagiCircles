@@ -31,7 +31,7 @@ from magi.utils import (
     tourldash,
     failSafe,
 )
-from django.utils.translation import ugettext_lazy as _, string_concat, get_language
+from django.utils.translation import ugettext_lazy as _, get_language
 
 settings_module = __import__(django_settings.SITE + '.settings', globals(), locals(), ['*'])
 

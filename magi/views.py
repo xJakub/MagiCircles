@@ -5,8 +5,7 @@ from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse, Http404
 from django.conf import settings as django_settings
-from django.contrib.auth.views import login as login_view
-from django.contrib.auth.views import logout as logout_view
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import authenticate, login as login_action
 from django.contrib.admin.utils import NestedObjects
 from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
@@ -222,15 +221,14 @@ def login(request):
             'title': title(context) if callable(title) else title,
             'url': u'/you/',
         }]
-    return login_view(
-        request,
+    return LoginView.as_view(
         authentication_form=LoginForm,
         template_name='pages/login.html',
         extra_context=context,
-    )
+    )(request)
 
 def logout(request):
-    return logout_view(request, next_page='/')
+    return LogoutView.as_view(next_page='/')(request)
 
 def signup(request, context):
     if request.user.is_authenticated:
@@ -1980,7 +1978,7 @@ def handler500(request):
         'error_details': mark_safe('If the problem persists, please <a href="/about/#contact">contact us</a>.'),
     })
 
-def handler403(request):
+def handler403(request, exception=None):
     return render(request, 'pages/error.html', {
         'error_code': 403,
         'page_title': 'Permission denied',

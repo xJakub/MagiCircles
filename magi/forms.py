@@ -18,7 +18,8 @@ from django.contrib.auth import authenticate, login as login_action
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.admin.utils import NestedObjects
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _, string_concat, get_language, activate as translation_activate
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
@@ -2558,7 +2559,7 @@ class CreateUserForm(_UserCheckEmailUsernameForm):
         fields = ('username', 'email', 'password')
 
 class UserForm(_UserCheckEmailUsernameForm):
-    form_title = string_concat(_('Username'), ' / ', t['Email'])
+    form_title = format_lazy('{}{}{}', _('Username'), ' / ', t['Email'])
     form_icon = 'profile'
 
     class Meta(_UserCheckEmailUsernameForm.Meta):
@@ -2670,7 +2671,7 @@ class ActivitiesPreferencesForm(MagiForm):
         }
 
 class SecurityPreferencesForm(MagiForm):
-    form_title = string_concat(_('Private messages'), ' (', _('Security'), ')')
+    form_title = format_lazy('{}{}{}{}', _('Private messages'), ' (', _('Security'), ')')
     form_icon = 'contact'
 
     def __init__(self, *args, **kwargs):
@@ -3713,8 +3714,8 @@ class FilterActivities(MagiFiltersForm):
     ordering_fields = [
         ('last_bump', _('Hot')),
         ('creation', _('Creation')),
-        ('_cache_total_likes,creation', string_concat(_('Most popular'), ' (', _('All time'), ')')),
-        ('_cache_total_likes,id', string_concat(_('Most popular'), ' (', _('This week'), ')')),
+        ('_cache_total_likes,creation', format_lazy('{}{}{}{}', _('Most popular'), ' (', _('All time'), ')')),
+        ('_cache_total_likes,id', format_lazy('{}{}{}{}', _('Most popular'), ' (', _('This week'), ')')),
     ]
 
     show_more = FormShowMore(cutoff='is_popular')
@@ -3757,13 +3758,13 @@ class FilterActivities(MagiFiltersForm):
         archived_by_owner=True,
     ) if value else queryset)
 
-    is_following = forms.BooleanField(label=string_concat(_('Following'), ' (', _('Only'), ')'), initial=False)
+    is_following = forms.BooleanField(label=format_lazy('{}{}{}{}', _('Following'), ' (', _('Only'), ')'), initial=False)
     is_following_filter = MagiFilter(to_queryset=lambda form, queryset, request, value: queryset.filter(
         Q(owner__in=request.user.preferences.following.all())
         | Q(owner_id=request.user.id)
     ) if value else queryset)
 
-    liked = forms.BooleanField(label=string_concat(_('Liked'), ' (', _('Only'), ')'), initial=False)
+    liked = forms.BooleanField(label=format_lazy('{}{}{}{}', _('Liked'), ' (', _('Only'), ')'), initial=False)
     liked_filter = MagiFilter(to_queryset=lambda form, queryset, request, value: queryset.filter(
         Q(likes__id=request.user.id) | Q(owner_id=request.user.id),
     ).distinct() if value else queryset)

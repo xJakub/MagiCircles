@@ -10,7 +10,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.loader import get_template
 from django.utils import timezone
-from django.utils.translation import string_concat, ugettext_lazy as _
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import RedirectView
 from django.forms import BaseForm
 #from magi import bouncy # unused, only to force load the feedback process
@@ -123,21 +124,20 @@ _verbose_re = '[\w.@+\-_]+'
 urls = [
     #url(r'^bouncy/', include('django_bouncy.urls', app_name='django_bouncy')),
     url(r'^i18n/', include('django.conf.urls.i18n')),
-    url(r'^password_reset[/]+$', auth_views.password_reset, {
-        'template_name': 'password/password_reset_form.html',
-        'html_email_template_name': 'password/password_reset_email_html.html',
-        'from_email': settings.PASSWORD_EMAIL,
-
-    }, name='password_reset'),
-    url(r'^password_reset/done[/]+$', auth_views.password_reset_done, {
-        'template_name': 'password/password_reset_done.html'
-    }, name='password_reset_done'),
-    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.password_reset_confirm, {
-        'template_name': 'password/password_reset_confirm.html'
-    }, name='password_reset_confirm'),
-    url(r'^reset/done[/]+$', auth_views.password_reset_complete, {
-        'template_name': 'password/password_reset_complete.html'
-    }, name='password_reset_complete'),
+    url(r'^password_reset[/]+$', auth_views.PasswordResetView.as_view(
+        template_name='password/password_reset_form.html',
+        html_email_template_name='password/password_reset_email_html.html',
+        from_email=settings.PASSWORD_EMAIL,
+    ), name='password_reset'),
+    url(r'^password_reset/done[/]+$', auth_views.PasswordResetDoneView.as_view(
+        template_name='password/password_reset_done.html'
+    ), name='password_reset_done'),
+    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', auth_views.PasswordResetConfirmView.as_view(
+        template_name='password/password_reset_confirm.html'
+    ), name='password_reset_confirm'),
+    url(r'^reset/done[/]+$', auth_views.PasswordResetCompleteView.as_view(
+        template_name='password/password_reset_complete.html'
+    ), name='password_reset_complete'),
 ]
 
 ############################################################
@@ -375,7 +375,7 @@ for collection in collections.values():
                     elif 'image' in details:
                         view_link['image'] = details['image']
                     else:
-                        view_link['title'] = string_concat(u'↳ ', view_link['title'])
+                        view_link['title'] = format_lazy('{}{}', u'↳ ', view_link['title'])
                     navbarAddLink(view_link['url_name'], view_link, collection.navbar_link_list)
                     added_links.append(view_link)
             added_links[-1]['divider_after'] = collection.navbar_link_list_divider_after

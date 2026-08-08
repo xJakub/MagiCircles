@@ -4,7 +4,8 @@ from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.contrib.auth.models import User
 from django.core import validators
-from django.utils.translation import ugettext_lazy as _, string_concat, get_language
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _, get_language
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -139,7 +140,7 @@ class UserPreferences(MagiModel):
     birthdate = models.DateField(_('Birthdate'), blank=True, null=True)
     show_birthdate_year = models.BooleanField(_('Display your birthdate year'), default=True)
     default_tab = models.CharField(_('Default tab'), max_length=100, null=True)
-    location = models.CharField(_('Location'), max_length=200, null=True, blank=True, help_text=string_concat(_('The city you live in.'), ' ', _('It might take up to 24 hours to update your location on the map.')))
+    location = models.CharField(_('Location'), max_length=200, null=True, blank=True, help_text=format_lazy('{}{}{}', _('The city you live in.'), ' ', _('It might take up to 24 hours to update your location on the map.')))
 
     LOCATION_ON_CHANGE = locationOnChange
 
@@ -504,7 +505,7 @@ class UserPreferences(MagiModel):
 class UserLink(BaseMagiModel):
     alphanumeric = validators.RegexValidator(r'^[0-9a-zA-Z\-_\. /]*$', 'Only alphanumeric and - _ characters are allowed.')
     owner = models.ForeignKey(User, related_name='links', on_delete=models.CASCADE)
-    value = models.CharField(string_concat(_('Username'), '/', _('ID')), max_length=64, help_text=_('Write your username only, no URL.'), validators=[alphanumeric])
+    value = models.CharField(format_lazy('{}{}{}', _('Username'), '/', _('ID')), max_length=64, help_text=_('Write your username only, no URL.'), validators=[alphanumeric])
 
     TYPE_CHOICES = [
         ('twitter', _('Twitter')),

@@ -2,7 +2,8 @@
 from __future__ import division
 import string, copy, inspect
 from collections import OrderedDict
-from django.utils.translation import ugettext_lazy as _, string_concat, get_language
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _, get_language
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
@@ -1997,7 +1998,7 @@ class MagiCollection(object):
                     'title': (
                         _('Clear')
                         if total_favoritable == 1
-                        else string_concat(_('Clear'), u' - ', _(ordinalNumber(current_nth)))
+                        else format_lazy('{}{}{}', _('Clear'), u' - ', _(ordinalNumber(current_nth)))
                     ),
                     'icon': 'delete',
                     'url': u'/unset_favorite_character/{}/{}/'.format(key, current_nth),
@@ -2009,7 +2010,7 @@ class MagiCollection(object):
             else:
                 if view.view == 'item_view':
                     icon = 'profile'
-                    title = lambda label: string_concat(_('Customize profile'), u' - ', label)
+                    title = lambda label: format_lazy('{}{}{}', _('Customize profile'), u' - ', label)
                     button_icon = 'star'
                     button_title = lambda label: _('Select {}').format(label.lower())
                 else:
@@ -2043,7 +2044,7 @@ class MagiCollection(object):
                             current_favorite_pk = failSafe(
                                 lambda: current_favorites[key][1]['pk'], exceptions=[ KeyError ])
                             if current_favorite_pk:
-                                buttons['set_favorite_character']['annotation'] = string_concat(
+                                buttons['set_favorite_character']['annotation'] = format_lazy('{}{}{}', 
                                     _('Current'), u' - ', getCharacterNameFromPk(current_favorite_pk))
                     else:
                         buttons['set_favorite_character']['ajax_url'] = u'/ajax' + url
@@ -2070,7 +2071,7 @@ class MagiCollection(object):
                         current_favorite_pk = failSafe(lambda: current_favorites[key][nth]['pk'],
                                                     exceptions=[ KeyError ])
                         if current_favorite_pk:
-                            buttons[button_name]['annotation'] = string_concat(
+                            buttons[button_name]['annotation'] = format_lazy('{}{}{}', 
                                 _('Current'), u' - ', getCharacterNameFromPk(current_favorite_pk))
 
         # Edit button
@@ -4972,7 +4973,7 @@ class BadgeCollection(MagiCollection):
         def extra_context(self, context):
             form_name = u'add_{}'.format(self.collection.name)
             if hasattr(context['forms'][form_name], 'badge'):
-                context['alert_message'] = string_concat(_('Badge'), ': ', str(context['forms'][form_name].badge))
+                context['alert_message'] = format_lazy('{}{}{}', _('Badge'), ': ', str(context['forms'][form_name].badge))
                 context['alert_type'] = 'info'
                 context['alert_flaticon'] = 'about'
                 context['alert_button_string'] = context['forms'][form_name].badge.open_sentence

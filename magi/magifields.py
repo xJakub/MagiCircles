@@ -10,7 +10,6 @@ from django.utils.formats import date_format
 from django.utils.translation import (
     activate as translation_activate,
     get_language,
-    string_concat,
     ugettext_lazy as _,
 )
 from magi.settings import (

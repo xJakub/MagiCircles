@@ -2,7 +2,8 @@
 from collections import OrderedDict
 from django.conf import settings as django_settings
 from django.utils.functional import lazy
-from django.utils.translation import ugettext_lazy as _, string_concat
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _
 from django.forms import MultipleChoiceField
 from magi.django_translated import t
 from magi.seasons import DEFAULT_SEASONS
@@ -135,7 +136,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Managers%20guide',
     }),
     ('circles_manager', {
-        'translation': string_concat('Circles - ', _('Manager')),
+        'translation': format_lazy('{}{}', 'Circles - ', _('Manager')),
         'description': 'Supervises and helps the creation and growth of all the web apps. Advises but generally doesn\'t interfere with the managers\' decisions.',
         'requires_staff': True,
         'permissions': [
@@ -212,7 +213,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Database%20maintainers%20guide',
     }),
     ('dbapi', {
-        'translation': string_concat(_('Database maintainer'), ' (API)'),
+        'translation': format_lazy('{}{}', _('Database maintainer'), ' (API)'),
         'description': 'Extracts assets and data and automatically updates our web app. They do their best to publish all the details as soon they are available.',
         'permissions': [
             'manage_main_items', 'translate_items',
@@ -253,7 +254,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Community%20managers%20guide',
     }),
     ('twitter_cm', {
-        'translation': string_concat(_('Community manager'), ' (', _('Twitter'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Community manager'), ' (', _('Twitter'), ')'),
         'description': 'We got you covered with all the game news on Twitter! Thanks to our active team, you know that by following us on Twitter, you\'ll never miss anything!',
         'requires_staff': True,
         'permissions': [
@@ -267,7 +268,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Community%20managers%20guide',
     }),
     ('instagram_cm', {
-        'translation': string_concat(_('Community manager'), ' (Instagram)'),
+        'translation': format_lazy('{}{}', _('Community manager'), ' (Instagram)'),
         'description': 'We got you covered with all the game news on Instagram! Thanks to our active team, you know that by following us on Instagram, you\'ll never miss anything!',
         'requires_staff': True,
         'permissions': [
@@ -309,7 +310,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Support%20guide',
     }),
     ('a_moderator', {
-        'translation': string_concat(_('Moderator'), ' (', _('Active'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Moderator'), ' (', _('Active'), ')'),
         'description': 'We want all of our users of all ages to have a pleasant a safe stay on our app. That\'s why our team of moderators use the app everyday and report anything that might be inappropriate or invalid!',
         'permissions': [
             'see_reputation',
@@ -328,7 +329,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Moderators%20guide',
     }),
     ('d_moderator', {
-        'translation': string_concat(_('Moderator'), ' (', _('Decisive'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Moderator'), ' (', _('Decisive'), ')'),
         'description': 'When something gets reported, our team of decisive moderators will make a decision on whether or not it should be edited or deleted. This 2-steps system ensures that our team makes fair decisions!',
         'permissions': [
             'moderate_reports',
@@ -385,7 +386,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Community%20entertainers%20guide',
     }),
     ('prizeassignment', {
-        'translation': string_concat(_('Community entertainer'), ' - ', _('Prizes')),
+        'translation': format_lazy('{}{}{}', _('Community entertainer'), ' - ', _('Prizes')),
         'description': 'In some of our events, participants can win prizes! This community entertainer is in charge of prize assignment. They\'ll make sure someone will take care of your prize and you receive it.',
         'permissions': [
             'add_prizes',
@@ -404,7 +405,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Backup%20staff%20guide',
     }),
     ('managerdeveloper', {
-        'translation': string_concat(_('Developer'), ' (', _('Main'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Developer'), ' (', _('Main'), ')'),
         'description': 'Developers contribute to the web app by adding new features or fixing bugs, and overall maintaining the web app.',
         'requires_staff': True,
         'permissions': [
@@ -439,7 +440,7 @@ DEFAULT_GROUPS = [
         'ajax_guide': '/ajax/help/Wiki%20editor%20guide/',
     }),
     ('discord', {
-        'translation': string_concat(_('Moderator'), ' (Discord)'),
+        'translation': format_lazy('{}{}', _('Moderator'), ' (Discord)'),
         'description': 'Help keep Circle\'s private server well organized and fun for all our staff and contributors.',
         'requires_staff': False,
         'permissions': [
@@ -530,7 +531,7 @@ DEFAULT_GROUPS = [
         'description': 'Beta testers have access to features before everybody else!',
     }),
     ('betatester_donator', {
-        'translation': string_concat(_(u'β-tester'), ' (', _('Donators'), ')'),
+        'translation': format_lazy('{}{}{}{}', _(u'β-tester'), ' (', _('Donators'), ')'),
         'description': 'Beta testers have access to features before everybody else!',
     }),
 ]
@@ -1011,7 +1012,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         },
     ]),
     ('set_background', {
-        'title': string_concat(_('Background'), ' - ', _('Apply changes')),
+        'title': format_lazy('{}{}{}', _('Background'), ' - ', _('Apply changes')),
         'ajax': False,
         'custom': False,
         'url_variables': [
@@ -1022,7 +1023,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'as_form': True,
     }),
     ('unset_background', {
-        'title': string_concat(_('Background'), ' - ', _('Clear')),
+        'title': format_lazy('{}{}{}', _('Background'), ' - ', _('Clear')),
         'ajax': False,
         'custom': False,
         'authentication_required': True,
@@ -1031,7 +1032,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
     }),
     ('set_favorite_character', [
         {
-            'title': string_concat(__(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Apply changes')),
+            'title': format_lazy('{}{}{}', __(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Apply changes')),
             'ajax': False,
             'custom': False,
             'url_variables': [
@@ -1043,7 +1044,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'as_form': True,
         },
         {
-            'title': string_concat(__(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Apply changes')),
+            'title': format_lazy('{}{}{}', __(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Apply changes')),
             'ajax': True,
             'custom': False,
             'url_variables': [
@@ -1055,7 +1056,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'as_form': True,
         },
         {
-            'title': string_concat(__(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Apply changes')),
+            'title': format_lazy('{}{}{}', __(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Apply changes')),
             'ajax': False,
             'custom': False,
             'url_variables': [
@@ -1070,7 +1071,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
     ]),
     ('unset_favorite_character', [
         {
-            'title': string_concat(__(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Clear')),
+            'title': format_lazy('{}{}{}', __(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Clear')),
             'ajax': False,
             'custom': False,
             'url_variables': [
@@ -1081,7 +1082,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'as_form': True,
         },
         {
-            'title': string_concat(__(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Clear')),
+            'title': format_lazy('{}{}{}', __(_('Favorite {thing}'), thing=_('Character')), ' - ', _('Clear')),
             'ajax': False,
             'custom': False,
             'url_variables': [

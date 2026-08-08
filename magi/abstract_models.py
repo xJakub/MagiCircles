@@ -1,7 +1,8 @@
 import datetime
 from collections import OrderedDict
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy as _, string_concat
+from django.utils.text import format_lazy
+from django.utils.translation import ugettext_lazy as _
 from django.db import models
 from django.db.models.fields.related import ForeignObjectRel
 from django.conf import settings as django_settings
@@ -341,7 +342,7 @@ class MobileGameAccount(BaseAccount):
 
 BASE_MODEL_FIELDS_PER_VERSION_AND_LANGUAGE_FOR_IMAGES = OrderedDict([
     (u'{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        string_concat(*([_version['translation'], ' - ', _('Image')] + (
+        format_lazy('{}', *([_version['translation'], ' - ', _('Image')] + (
             [' - ', getVerboseLanguage(_language)] if _language else []
         ))),
         upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True, max_length=255,)),
@@ -728,16 +729,16 @@ class BaseEvent(_BaseEvent):
 
 BASE_EVENT_FIELDS_PER_VERSION = OrderedDict([
     (u'{}start_date', lambda _version_name, _version: models.DateTimeField(
-        string_concat(_version['translation'], ' - ', _('Beginning')), null=True,
+        format_lazy('{}{}{}', _version['translation'], ' - ', _('Beginning')), null=True,
     )),
     (u'{}end_date', lambda _version_name, _version: models.DateTimeField(
-        string_concat(_version['translation'], ' - ', _('End')), null=True,
+        format_lazy('{}{}{}', _version['translation'], ' - ', _('End')), null=True,
     )),
 ])
 
 BASE_EVENT_FIELDS_PER_VERSION_AND_LANGUAGE = OrderedDict([
     (u'{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        string_concat(*([_version['translation'], ' - ', _('Image')] + (
+        format_lazy('{}', *([_version['translation'], ' - ', _('Image')] + (
             [' - ', getVerboseLanguage(_language)] if _language else []
         ))),
         upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, max_length=255,)),
