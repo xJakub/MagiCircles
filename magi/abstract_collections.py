@@ -1,4 +1,5 @@
 import operator
+from functools import reduce
 from django.utils.translation import ugettext_lazy as _
 from magi.magicollections import MainItemCollection
 from magi.utils import (
@@ -44,7 +45,7 @@ class BaseModelWithVersionsCollection(MainItemCollection):
         fields_icons = self.base_fields_icons.copy()
         if self.with_versions:
             # Static fields_icons_per_version + fields_icons_per_version_and_language
-            for template_field_name, icon in self.fields_icons_per_version.items() + self.fields_icons_per_version_and_language.items():
+            for template_field_name, icon in list(self.fields_icons_per_version.items()) + list(self.fields_icons_per_version_and_language.items()):
                 fields_icons.update({ field_name: icon for field_name in self.queryset.model.get_all_versions_field_names(template_field_name) })
             # Dynamic get_fields_icons_per_version
             for version_name, version in self.versions.items():
@@ -81,7 +82,7 @@ class BaseModelWithVersionsCollection(MainItemCollection):
         fields_images = self.base_fields_images.copy()
         if self.with_versions:
             # Static fields_images_per_version + fields_images_per_version_and_language
-            for template_field_name, image in self.fields_images_per_version.items() + self.fields_images_per_version_and_language.items():
+            for template_field_name, image in list(self.fields_images_per_version.items()) + list(self.fields_images_per_version_and_language.items()):
                 fields_images.update({ field_name: image for field_name in self.queryset.model.get_all_versions_field_names(template_field_name) })
             # Dynamic get_fields_images_per_version
             for version_name, version in self.versions.items():

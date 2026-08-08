@@ -267,7 +267,7 @@ class PermissionsTestCase(TestCase):
         })
 
     def test_allPermissions(self):
-        self.assertItemsEqual(utils.allPermissions(self.user.preferences.GROUPS), [
+        self.assertCountEqual(utils.allPermissions(self.user.preferences.GROUPS), [
             'advanced_staff_configurations',
             'edit_roles',
             'see_profile_edit_button',
@@ -286,25 +286,25 @@ class PermissionsTestCase(TestCase):
         ])
 
     def test_groupsPerPermission(self):
-        self.assertEqual(utils.groupsPerPermission(self.user.preferences.GROUPS, 'edit_roles').keys(), [
+        self.assertEqual(list(utils.groupsPerPermission(self.user.preferences.GROUPS, 'edit_roles').keys()), [
             'manager', 'team',
         ])
 
     def test_groupsWithPermissions(self):
-        self.assertItemsEqual(utils.groupsWithPermissions(
+        self.assertCountEqual(utils.groupsWithPermissions(
             self.user.preferences.GROUPS, ['edit_roles', 'edit_staff_status']).keys(), [
                 'manager', 'team',
         ])
-        self.assertItemsEqual(utils.groupsWithPermissions(
+        self.assertCountEqual(utils.groupsWithPermissions(
             self.user.preferences.GROUPS, ['manage_donation_months', 'edit_donator_status']).keys(), [
                 'finance',
         ])
-        self.assertItemsEqual(utils.groupsWithPermissions(
+        self.assertCountEqual(utils.groupsWithPermissions(
             self.user.preferences.GROUPS, ['translate_items', 'add_badges']).keys(), [
         ])
 
     def test_groupsWithOneOfPermissions(self):
-        self.assertItemsEqual(utils.groupsWithOneOfPermissions(
+        self.assertCountEqual(utils.groupsWithOneOfPermissions(
             self.user.preferences.GROUPS, ['edit_roles', 'edit_staff_configurations']).keys(), [
                 'manager', 'team', 'cm', 'entertainer',
         ])
@@ -314,11 +314,11 @@ class PermissionsTestCase(TestCase):
         self.user.preferences.save()
         self.user2.preferences.save_c('groups', ['team', 'translator', 'entertainer'])
         self.user2.preferences.save()
-        self.assertItemsEqual([u.username for u in utils.usersWithGroups(models.User.objects, ['team', 'translator'])], [
+        self.assertCountEqual([u.username for u in utils.usersWithGroups(models.User.objects, ['team', 'translator'])], [
             '8888',
             '9999',
         ])
-        self.assertItemsEqual([u.username for u in utils.usersWithGroups(models.User.objects, ['team', 'manager'])], [
+        self.assertCountEqual([u.username for u in utils.usersWithGroups(models.User.objects, ['team', 'manager'])], [
             '8888',
         ])
 

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 import json, random, csv
 from collections import OrderedDict
 from optparse import make_option
@@ -261,7 +260,7 @@ class Command(BaseCommand):
         return self._csv_rows
 
     def get_platforms_from_csv(self):
-        return self.get_csv_rows().keys()
+        return list(self.get_csv_rows().keys())
 
     def get_csv_entries(self, all_entries):
         for platform, entries in self.get_csv_rows().items():
@@ -433,7 +432,7 @@ class Command(BaseCommand):
             for entries_per_user in all_entries_per_user:
                 # only need to check common usernames in main platforms because we know
                 # all platforms have been set for all entries in self.make_entries_consistent
-                if entry.has_usernames_in_common(entry.platform, entries_per_user[entries_per_user.keys()[0]]):
+                if entry.has_usernames_in_common(entry.platform, entries_per_user[list(entries_per_user.keys())[0]]):
                     entries_per_user[url] = entry
                     found = True
                     break
@@ -451,7 +450,7 @@ class Command(BaseCommand):
     # Entries eligibility to win
 
     def entry_won_this_time(self, entry):
-        winners_urls = sum([ winners.keys() for winners in self.winners.values() ], [])
+        winners_urls = sum([ list(winners.keys()) for winners in self.winners.values() ], [])
         for url in [ entry.url ] + entry.get('other_entries_by_same_user', []):
             if url in winners_urls:
                 return True
@@ -566,7 +565,7 @@ class Command(BaseCommand):
 
     def pick_random_winners(self):
         def _pick_random_winner(pick_from):
-            return random.choice(pick_from.keys())
+            return random.choice(list(pick_from.keys()))
         return self.pick_winners(self.options['pick_random_winners'], _pick_random_winner)
 
     def pick_likes_winners(self):
@@ -709,9 +708,9 @@ class Command(BaseCommand):
                 print('![Prizes]({})'.format(self.options['prizes_image']))
                 print('')
             if self.options.get('physical_prizes', False):
-                print('- 1 {} physical prize (official merch)'.format(unicode(settings.GAME_NAME)))
-            print('- 1 {} art commission'.format(unicode(settings.GAME_NAME)))
-            print('- 1 {} graphic edit commission'.format(unicode(settings.GAME_NAME)))
+                print('- 1 {} physical prize (official merch)'.format(str(settings.GAME_NAME)))
+            print('- 1 {} art commission'.format(str(settings.GAME_NAME)))
+            print('- 1 {} graphic edit commission'.format(str(settings.GAME_NAME)))
             print('')
             print('*Subject to availability*')
             print('')
@@ -765,7 +764,7 @@ class Command(BaseCommand):
                 if len(entries_per_user) > 1:
                     platforms = listUnique([ entry.platform for entry in entries_per_user.values() ])
                     ll = []
-                    entry = entries_per_user.values()[0]
+                    entry = list(entries_per_user.values())[0]
                     if (len(platforms) > 1 or len(self.platforms) == 1):
                         u = '[{}]({}):'.format(entry.usernames[0], entry.profile_urls[0])
                     else:
@@ -783,11 +782,11 @@ class Command(BaseCommand):
                             ll.append(u'[{}]({})'.format(ordinalNumber(i + 1), url))
                     l.append(u'{} {}'.format(u, andJoin(ll)))
                 elif len(self.platforms) > 1:
-                    url, entry = entries_per_user.items()[0]
+                    url, entry = list(entries_per_user.items())[0]
                     l.append(u'[{} on {}]({})'.format(
                         entry.usernames[0], self.get_platform_name(entry.platform), url))
                 else:
-                    url, entry = entries_per_user.items()[0]
+                    url, entry = list(entries_per_user.items())[0]
                     l.append(u'[{}]({})'.format(entry.usernames[0], entry.url))
             for participant in l:
                 print('- {}'.format(participant))

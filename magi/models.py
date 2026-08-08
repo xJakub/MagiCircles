@@ -300,7 +300,7 @@ class UserPreferences(MagiModel):
     def get_localized_color(self, color):
         if color and USER_COLORS:
             try:
-                return (_(localized) for (name, localized, __, __) in USER_COLORS if unicode(name) == color).next()
+                return (_(localized) for (name, localized, __, __) in USER_COLORS if str(name) == color).next()
             except: pass
         return ''
     @property
@@ -311,7 +311,7 @@ class UserPreferences(MagiModel):
     def get_hex_color(self, color):
         if color and USER_COLORS:
             try:
-                return (hex for (name, _, _, hex) in USER_COLORS if unicode(name) == color).next()
+                return (hex for (name, _, _, hex) in USER_COLORS if str(name) == color).next()
             except: pass
         return COLOR
     @property
@@ -329,7 +329,7 @@ class UserPreferences(MagiModel):
     def get_css_color(self, color):
         if color and USER_COLORS:
             try:
-                return (css_color for (name, _, css_color, _) in USER_COLORS if unicode(name) == color).next()
+                return (css_color for (name, _, css_color, _) in USER_COLORS if str(name) == color).next()
             except: pass
         return 'main'
 
@@ -416,7 +416,7 @@ class UserPreferences(MagiModel):
             }).count()) for collection_name, collection in [
                 (collection_name, getMagiCollection(collection_name))
                 for collection_name in RAW_CONTEXT['collections_in_profile_tabs']
-            ] + RAW_CONTEXT['collectible_collections'].get('owner', {}).items()
+            ] + list(RAW_CONTEXT['collectible_collections'].get('owner', {}).items())
         })
 
         return tabs_with_content
@@ -627,7 +627,7 @@ class StaffConfiguration(MagiModel):
             return None
         return self.value
 
-    def __unicode__(self):
+    def __str__(self):
         return self.verbose_key
 
     class Meta:
@@ -804,7 +804,7 @@ class StaffDetails(MagiModel):
     def top_image(self):
         return self.image_url or self.owner.image_url
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{} staff details'.format(self.owner.username)
 
 ############################################################
@@ -977,8 +977,8 @@ class Activity(MagiModel):
 
     m_description = property(lambda _s: _s.m_message)
 
-    def __unicode__(self):
-        return self.get_title() or unicode(_('Post'))
+    def __str__(self):
+        return self.get_title() or str(_('Post'))
 
     class Meta:
         verbose_name_plural = 'activities'
@@ -1194,7 +1194,7 @@ class Notification(MagiModel):
     def icon(self):
         return self.message_value('icon')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.localized_message
 
     class Meta:
@@ -1304,9 +1304,9 @@ class Report(MagiModel):
     def edited_fields(self):
         return self.reported_thing_collection.suggest_edit_choices
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{title} #{id}'.format(
-            title=unicode(_(self.reported_thing_title)),
+            title=str(_(self.reported_thing_title)),
             id=self.reported_thing_id,
         )
 
@@ -1371,7 +1371,7 @@ class DonationMonth(MagiModel):
 
     @property
     def open_badge_sentence(self):
-        return _('Open {thing}').format(thing=unicode(_('Badge')).lower())
+        return _('Open {thing}').format(thing=str(_('Badge')).lower())
 
     @property
     def badge_sentence(self):
@@ -1379,8 +1379,8 @@ class DonationMonth(MagiModel):
             month=_(self.date.strftime('%B')),
         )
 
-    def __unicode__(self):
-        return unicode(self.date)
+    def __str__(self):
+        return str(self.date)
 
     class Meta:
         ordering = ['-date']
@@ -1463,7 +1463,7 @@ class Badge(MagiModel):
             )
         return self.description
 
-    def __unicode__(self):
+    def __str__(self):
         return self.translated_name
 
     class Meta:
@@ -1519,7 +1519,7 @@ class Prize(MagiModel):
     def images_urls(self):
         return [ i for i in [self.image_url, self.image2_url, self.image3_url, self.image4_url] if i ]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 ############################################################
@@ -1546,7 +1546,7 @@ class PrivateMessage(MagiModel):
             message += u'...'
         return message
 
-    def __unicode__(self):
+    def __str__(self):
         return self.message
 
 ############################################################

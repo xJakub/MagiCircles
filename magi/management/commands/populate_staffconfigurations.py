@@ -1,4 +1,3 @@
-from __future__ import print_function
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings as django_settings
 from magi.utils import ordinalNumber, LANGUAGES_DICT

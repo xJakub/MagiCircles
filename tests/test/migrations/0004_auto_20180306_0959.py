@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(unique=True, max_length=100)),
-                ('image', models.ImageField(upload_to=magi.utils.uploadItem(b'gacha'))),
+                ('image', models.ImageField(upload_to=magi.utils.uploadItem('gacha'))),
                 ('card', models.ForeignKey(related_name='gachas', to='test.Card', null=True)),
                 ('owner', models.ForeignKey(related_name='added_gachas', to=settings.AUTH_USER_MODEL)),
             ],
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(unique=True, max_length=100)),
                 ('japanese_name', models.CharField(max_length=100, null=True)),
-                ('image', models.ImageField(upload_to=magi.utils.uploadItem(b'idols'))),
+                ('image', models.ImageField(upload_to=magi.utils.uploadItem('idols'))),
                 ('owner', models.ForeignKey(related_name='added_idols', to=settings.AUTH_USER_MODEL)),
             ],
             options={

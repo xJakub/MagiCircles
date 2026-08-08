@@ -3145,3 +3145,12 @@ nav {
         color: white!important;
     }
 }
+
+// Django's CheckboxSelectMultiple/RadioSelect widgets apply the field's class attribute
+// to the wrapping <ul> as well as each option's <input>. When that class is form-control,
+// Bootstrap's fixed single-line height (meant for text inputs) clips multi-item checkbox
+// lists down to one row. Restore normal auto-height for these lists specifically.
+ul.form-control {
+    height: auto;
+    overflow: visible;
+}

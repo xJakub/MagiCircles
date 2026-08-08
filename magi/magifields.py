@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 import re
-import six
 from copy import copy
 from collections import OrderedDict
 from django.conf import settings as django_settings
@@ -177,7 +175,7 @@ class MagiField(object):
         'item', # Only if the item referred to is different from the item being displayed by the view (rare)
         'item_access_field_name', # Mostly used by subfields
         # Can be a callable that takes item (the one from the view)
-    ] + MagiDisplay.PARAMETERS.keys() # verbose_name, icon, etc
+    ] + list(MagiDisplay.PARAMETERS.keys()) # verbose_name, icon, etc
     VALID_KWARGS = []
 
     # Before bound
@@ -290,7 +288,7 @@ class MagiField(object):
         """
         if isMarkedSafe(self.value):
             return None
-        return unicode(self.value)
+        return str(self.value)
 
     # Used to create an FAQ for SEO
     # To return multiple questions and answer, use to_faq instead
@@ -334,7 +332,7 @@ class MagiField(object):
         question = self.format_question(self.to_question())
         if question is not None:
             answer = self.to_answer()
-            if hasValue(answer) and unicode(answer) != unicode(self.name_for_question):
+            if hasValue(answer) and str(answer) != str(self.name_for_question):
                 return [
                     (question, answer),
                 ]
@@ -757,7 +755,7 @@ class MagiField(object):
     def check_valid_kwarg(self, kwarg_key):
         if kwarg_key in self.BASE_VALID_KWARGS + self.VALID_KWARGS:
             return True
-        for option_name in self.BASE_VALID_ITEM_OPTIONS.keys() + self.VALID_ITEM_OPTIONS.keys():
+        for option_name in list(self.BASE_VALID_ITEM_OPTIONS.keys()) + list(self.VALID_ITEM_OPTIONS.keys()):
             if kwarg_key == self.item_option_to_key(option_name).lower():
                 return True
         raise TypeError(u'{} got an unexpected keyword argument \'{}\''.format(
@@ -878,7 +876,7 @@ class MagiField(object):
     def set_item_options(self):
         self.item_options = {
             self.item_option_to_key(option_name): self.get_item_option_value(option_name, default)
-            for option_name, default in self.BASE_VALID_ITEM_OPTIONS.items() + self.VALID_ITEM_OPTIONS.items()
+            for option_name, default in list(self.BASE_VALID_ITEM_OPTIONS.items()) + list(self.VALID_ITEM_OPTIONS.items())
         }
 
     @classmethod
@@ -1381,7 +1379,7 @@ class BaseMagiDateFieldMixin(object):
         try:
             return date_format(self.value, format='DATETIME_FORMAT', use_l10n=True)
         except AttributeError:
-            return unicode(self.value)
+            return str(self.value)
 
     default_icon = 'date'
     default_verbose_name = _('Date')
@@ -2223,7 +2221,7 @@ class MagiCSVFieldMixin(MagiModelField):
     def to_db_value(self):
         # Ensure value is always an OrderedDict or list
         db_value = super(MagiCSVFieldMixin, self).to_db_value()
-        if isinstance(db_value, six.string_types):
+        if isinstance(db_value, str):
             db_value = split_data(db_value)
         return db_value
 
@@ -2541,7 +2539,7 @@ class MagiLeaderboardPositionModelField(MagiLeaderboardPositionFieldMixin, MagiM
 
 class MagiUnicodeField(MagiField):
     """
-    Auto-value (unicode(item))
+    Auto-value (str(item))
     """
     @classmethod
     def is_field(self, field_name, options):
@@ -2552,10 +2550,10 @@ class MagiUnicodeField(MagiField):
         return self.collection.title
 
     def to_db_value(self):
-        return getattr(self.item, 'name', unicode(self.item))
+        return getattr(self.item, 'name', str(self.item))
 
     def to_value(self):
-        return unicode(self.item)
+        return str(self.item)
 
     def has_value(self):
         return True
@@ -2663,7 +2661,7 @@ class MagiSocialMediaTemplateField(MagiTextareaField):
             'list_url': self.collection.get_list_url(full=True) if self.collection else SITE_URL,
             'thing': self.collection.title,
             'things': self.collection.plural_title,
-            'unicode': unicode(self.item),
+            'unicode': str(self.item),
             'value': self.db_value or '',
             'url': self.item.http_item_url,
             'emoji1': emojis[0],
@@ -2801,7 +2799,7 @@ class BaseMagiRelatedField(MagiModelField):
         if 'verbose_name' in self.fields_kwargs:
             return self.fields_kwargs['verbose_name']
         return u' - '.join([
-            unicode(v) for v in self.get_verbose_name_list()
+            str(v) for v in self.get_verbose_name_list()
         ])
 
     @property
@@ -3006,7 +3004,7 @@ class MagiForeignKeyModelField(BaseMagiRelatedField):
 
     @property
     def ajax_link_title(self):
-        return unicode(self.rel_item)
+        return str(self.rel_item)
 
     @property
     def image_for_link(self):
@@ -3100,7 +3098,7 @@ class BaseMagiManyToManyModelField(BaseMagiRelatedField):
         if isinstance(self.model_field, models.models.ManyToManyField):
             return self.model_field.rel.to
         elif isinstance(self.model_field, ForeignObjectRel):
-            return self.model_field.model
+            return self.model_field.related_model
         elif isinstance(self.model_field, ReverseRelatedDetails):
             return getModelOfRelatedItem(self.model, self.item_access_field_name)
         return None
@@ -3122,7 +3120,7 @@ class BaseMagiManyToManyModelField(BaseMagiRelatedField):
         if self.cached_total == 0:
             return _('No result.')
         rel_plural_verbose_name = self.rel_plural_verbose_name
-        if '{total}' in unicode(rel_plural_verbose_name):
+        if '{total}' in str(rel_plural_verbose_name):
             if self.cached_total is None:
                 return rel_plural_verbose_name.format(total=u'')
             return rel_plural_verbose_name.format(total=self.cached_total)
@@ -3405,7 +3403,7 @@ class MagiManyToManyModelField(BaseMagiManyToManyModelField):
                 )
             ))
         # List of items
-        list_of_items = andJoin([ unicode(item) for item in self.rel_items ] + (
+        list_of_items = andJoin([ str(item) for item in self.rel_items ] + (
             [ _('More').lower() ] if self.and_more_button_total != 0 else []
         ))
         if getattr(self.rel_model_class, 'IS_PERSON', False):
@@ -3426,8 +3424,8 @@ class MagiManyToManyModelField(BaseMagiManyToManyModelField):
 
     def to_text_value(self, iter_value=None):
         if self.is_multifields():
-            return unicode(iter_value)
-        return u'\n'.join([ unicode(item) for item in self.rel_items ] + (
+            return str(iter_value)
+        return u'\n'.join([ str(item) for item in self.rel_items ] + (
             [ _('More').lower() ] if self.and_more_button_total != 0 else []
         ))
 
@@ -3555,7 +3553,7 @@ class MagiManyToManyModelField(BaseMagiManyToManyModelField):
         ) if iter_value is not None else None
 
     def multifields_ajax_link_title(self, iter_value):
-        return unicode(iter_value)
+        return str(iter_value)
 
     # Used by MagiDisplayTextWithLink
 
@@ -3877,7 +3875,7 @@ class MagiButtonField(MagiField):
         if self.original_button_name == 'share':
             self.context['share_url'] = self.item.share_url
             self.context['share_btn_class'] = u' '.join(self.link_classes).replace('btn btn-', '')
-            self.context['share_sentence'] = unicode(self.item)
+            self.context['share_sentence'] = str(self.item)
             self.context['share_btn_group'] = True
 
     @property
@@ -4207,7 +4205,7 @@ class MagiFields(object):
             try:
                 return self.item.t_name
             except AttributeError:
-                return unicode(self.item)
+                return str(self.item)
 
     ############################################################
     # Init
@@ -4394,7 +4392,7 @@ class MagiFields(object):
     def set_model_preselected_subfields(self, field_name, model_field, subfields_list):
         for subfield_field_name in subfields_list:
             if isinstance(model_field, ForeignObjectRel):
-                subfield_model_field = modelGetField(model_field.model, subfield_field_name)
+                subfield_model_field = modelGetField(model_field.related_model, subfield_field_name)
             else:
                 subfield_model_field = modelGetField(model_field.rel.to, subfield_field_name)
             if subfield_model_field:
@@ -4835,7 +4833,7 @@ class EventVersionFieldMixin(object):
 
 class EventVersionTitleField(EventVersionFieldMixin, MagiCharField):
     # Display basics
-    verbose_name = property(lambda _s: _s.item.get_name_for_version(_s.version_name) or unicode(_s.item))
+    verbose_name = property(lambda _s: _s.item.get_name_for_version(_s.version_name) or str(_s.item))
     verbose_name_subtitle = property(lambda _s: _s.item.get_version_name(_s.version_name))
     image = property(lambda _s: _s.item.get_version_image(_s.version_name))
     icon = property(lambda _s: _s.item.get_version_icon(_s.version_name))

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 import datetime, string
 from collections import OrderedDict
 from django.conf import settings as django_settings
@@ -171,10 +170,10 @@ class MagiDisplay(object):
     @property
     def valid_parameters(self):
         return (
-            self.PARAMETERS.keys()
+            list(self.PARAMETERS.keys())
             + self.REQUIRED_PARAMETERS
-            + self.OPTIONAL_PARAMETERS.keys()
-            + self.INTERNAL_PARAMETERS.keys()
+            + list(self.OPTIONAL_PARAMETERS.keys())
+            + list(self.INTERNAL_PARAMETERS.keys())
         )
 
     ############################################################
@@ -390,7 +389,7 @@ class MagiDisplay(object):
                 parameters_per_item.update(extra_parameters_per_item)
             # Prepare parameters templates
             parameters_templates_per_item = parameters_templates.copy()
-            for added_parameter_name in [ 'i', 'key', 'value' ] + extra_parameters_per_item.keys():
+            for added_parameter_name in [ 'i', 'key', 'value' ] + list(extra_parameters_per_item.keys()):
                 parameters_templates_per_item[added_parameter_name] = self.get_parameter_template(
                     added_parameter_name, parameters_per_item[added_parameter_name],
                     parameters_per_item, parameters_templates_per_item,
@@ -451,7 +450,7 @@ class _MagiDisplayText(MagiDisplay):
     def to_display_value(self, value, parameters):
         if isMarkedSafe(value):
             return value
-        return unicode(value)
+        return str(value)
 
     def to_parameters_extra(self, parameters):
         parameters.text_image_alt = parameters.text_image_alt or parameters.verbose_name
@@ -475,7 +474,7 @@ class _MagiDisplayLongText(MagiDisplay):
     def to_display_value(self, value, parameters):
         if isMarkedSafe(value):
             return value
-        return unicode(value)
+        return str(value)
 
     template = u'<div class="long-text-value">{display_value}</div>'
 
@@ -503,10 +502,10 @@ class _MagiDisplayTextWithLink(MagiDisplay):
     def to_display_value(self, value, parameters):
         if isMarkedSafe(value):
             return value
-        return unicode(value)
+        return str(value)
 
     def to_parameters_extra(self, parameters):
-        parameters.ajax_link_title = parameters.ajax_link_title or unicode(parameters.display_value)
+        parameters.ajax_link_title = parameters.ajax_link_title or str(parameters.display_value)
         parameters.image_for_link = parameters.image_for_link or parameters.image
 
     template = u"""

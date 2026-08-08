@@ -42,11 +42,11 @@ class Migration(migrations.Migration):
             name='IChoicesTest',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('i_attribute', models.PositiveIntegerField(default=0, choices=[(0, b'smile'), (1, b'pure'), (2, b'cool')])),
+                ('i_attribute', models.PositiveIntegerField(default=0, choices=[(0, 'smile'), (1, 'pure'), (2, 'cool')])),
                 ('i_power', models.PositiveIntegerField(default=0, choices=[(0, 'Happy'), (1, 'Cool'), (2, 'Rock')])),
                 ('i_super_power', models.PositiveIntegerField(default=0, choices=[(0, 'Happy'), (1, 'Cool'), (2, 'Rock')])),
-                ('i_rarity', models.PositiveIntegerField(default=0, choices=[(0, b'N'), (1, b'R'), (2, b'SR')])),
-                ('i_language', models.CharField(default=b'en', max_length=10, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'ru', 'Russian'), (b'it', 'Italian')])),
+                ('i_rarity', models.PositiveIntegerField(default=0, choices=[(0, 'N'), (1, 'R'), (2, 'SR')])),
+                ('i_language', models.CharField(default='en', max_length=10, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('ru', 'Russian'), ('it', 'Italian')])),
                 ('i_notification', models.PositiveIntegerField(default=0, verbose_name='Notification type', choices=[(0, 'When someone likes your activity.'), (1, 'When someone follows you.')])),
             ],
             options={

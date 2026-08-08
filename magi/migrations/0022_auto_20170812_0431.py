@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activity',
             name='i_language',
-            field=models.CharField(max_length=4, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'ru', 'Russian'), (b'it', 'Italian'), (b'fr', 'French'), (b'de', 'German'), (b'pl', 'Polish'), (b'ja', 'Japanese'), (b'kr', 'Korean'), (b'zh-hans', 'Simplified Chinese'), (b'pt-br', 'Brazilian Portuguese')]),
+            field=models.CharField(max_length=4, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('ru', 'Russian'), ('it', 'Italian'), ('fr', 'French'), ('de', 'German'), ('pl', 'Polish'), ('ja', 'Japanese'), ('kr', 'Korean'), ('zh-hans', 'Simplified Chinese'), ('pt-br', 'Brazilian Portuguese')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -37,13 +37,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userpreferences',
             name='i_language',
-            field=models.CharField(max_length=10, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'ru', 'Russian'), (b'it', 'Italian'), (b'fr', 'French'), (b'de', 'German'), (b'pl', 'Polish'), (b'ja', 'Japanese'), (b'kr', 'Korean'), (b'zh-hans', 'Simplified Chinese'), (b'pt-br', 'Brazilian Portuguese')]),
+            field=models.CharField(max_length=10, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('ru', 'Russian'), ('it', 'Italian'), ('fr', 'French'), ('de', 'German'), ('pl', 'Polish'), ('ja', 'Japanese'), ('kr', 'Korean'), ('zh-hans', 'Simplified Chinese'), ('pt-br', 'Brazilian Portuguese')]),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='userpreferences',
             name='i_status',
-            field=models.CharField(max_length=12, null=True, verbose_name='Status', choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Player'), (b'LOVER', 'Super Player'), (b'AMBASSADOR', 'Extreme Player'), (b'PRODUCER', 'Master Player'), (b'DEVOTEE', 'Ultimate Player')]),
+            field=models.CharField(max_length=12, null=True, verbose_name='Status', choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Player'), ('LOVER', 'Super Player'), ('AMBASSADOR', 'Extreme Player'), ('PRODUCER', 'Master Player'), ('DEVOTEE', 'Ultimate Player')]),
             preserve_default=True,
         ),
     ]

@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='prize',
             name='i_character',
-            field=models.CharField(max_length=200, null=True, verbose_name=b'Character'),
+            field=models.CharField(max_length=200, null=True, verbose_name='Character'),
             preserve_default=True,
         ),
     ]

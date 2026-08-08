@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gacha',
             name='i_attribute',
-            field=models.PositiveIntegerField(default=0, choices=[(0, b'smile'), (1, b'pure'), (2, b'cool')]),
+            field=models.PositiveIntegerField(default=0, choices=[(0, 'smile'), (1, 'pure'), (2, 'cool')]),
             preserve_default=True,
         ),
         migrations.AddField(
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='gacha',
             name='i_rarity',
-            field=models.PositiveIntegerField(default=0, choices=[(0, b'N'), (1, b'R'), (2, b'SR')]),
+            field=models.PositiveIntegerField(default=0, choices=[(0, 'N'), (1, 'R'), (2, 'SR')]),
             preserve_default=True,
         ),
         migrations.AddField(

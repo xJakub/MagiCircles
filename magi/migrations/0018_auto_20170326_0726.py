@@ -37,13 +37,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='activity',
             name='_cache_owner_preferences_i_status',
-            field=models.CharField(max_length=12, null=True, choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Skilled Producer'), (b'LOVER', 'Expert Producer'), (b'AMBASSADOR', 'Veteran Producer'), (b'PRODUCER', 'Ultimate Producer'), (b'DEVOTEE', 'Idol Master')]),
+            field=models.CharField(max_length=12, null=True, choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Skilled Producer'), ('LOVER', 'Expert Producer'), ('AMBASSADOR', 'Veteran Producer'), ('PRODUCER', 'Ultimate Producer'), ('DEVOTEE', 'Idol Master')]),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='donationmonth',
             name='image',
-            field=models.ImageField(default='', upload_to=magi.utils.uploadItem(b'badges/'), verbose_name='Image'),
+            field=models.ImageField(default='', upload_to=magi.utils.uploadItem('badges/'), verbose_name='Image'),
             preserve_default=False,
         ),
         migrations.AddField(
@@ -61,19 +61,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userpreferences',
             name='i_status',
-            field=models.CharField(max_length=12, null=True, choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Skilled Producer'), (b'LOVER', 'Expert Producer'), (b'AMBASSADOR', 'Veteran Producer'), (b'PRODUCER', 'Ultimate Producer'), (b'DEVOTEE', 'Idol Master')]),
+            field=models.CharField(max_length=12, null=True, choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Skilled Producer'), ('LOVER', 'Expert Producer'), ('AMBASSADOR', 'Veteran Producer'), ('PRODUCER', 'Ultimate Producer'), ('DEVOTEE', 'Idol Master')]),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='activity',
             name='image',
-            field=models.ImageField(help_text='Only post official artworks, artworks you own, or fan artworks that are approved by the artist and credited.', upload_to=magi.utils.uploadToRandom(b'activities/'), null=True, verbose_name='Image', blank=True),
+            field=models.ImageField(help_text='Only post official artworks, artworks you own, or fan artworks that are approved by the artist and credited.', upload_to=magi.utils.uploadToRandom('activities/'), null=True, verbose_name='Image', blank=True),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='badge',
             name='image',
-            field=models.ImageField(upload_to=magi.utils.uploadItem(b'badges/'), verbose_name='Image'),
+            field=models.ImageField(upload_to=magi.utils.uploadItem('badges/'), verbose_name='Image'),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -85,7 +85,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='badge',
             name='rank',
-            field=models.PositiveIntegerField(blank=True, help_text=b'Top 3 of this specific badge.', null=True, choices=[(1, 'Bronze'), (2, 'Silver'), (3, 'Gold')]),
+            field=models.PositiveIntegerField(blank=True, help_text='Top 3 of this specific badge.', null=True, choices=[(1, 'Bronze'), (2, 'Silver'), (3, 'Gold')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -103,7 +103,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='notification',
             name='image',
-            field=models.ImageField(null=True, upload_to=magi.utils.uploadItem(b'notifications/'), blank=True),
+            field=models.ImageField(null=True, upload_to=magi.utils.uploadItem('notifications/'), blank=True),
             preserve_default=True,
         ),
     ]

@@ -20,8 +20,8 @@ RAW_CONTEXT = {
 _usernameRegexp = '[\w.@+-]+'
 
 def _format_lazy(text, *args, **kwargs):
-    return unicode(text).format(*args, **kwargs)
-__ = lazy(_format_lazy, unicode)
+    return str(text).format(*args, **kwargs)
+__ = lazy(_format_lazy, str)
 
 ############################################################
 # Javascript translated terms
@@ -470,7 +470,7 @@ DEFAULT_GROUPS = [
                     required=False, label=_('Languages'), choices=LANGUAGES_DICT.items(),
                 ),
                 'to_t_value': lambda _value: u', '.join([
-                    unicode(LANGUAGES_DICT.get(_l, _l)) for _l in (_value or [])
+                    str(LANGUAGES_DICT.get(_l, _l)) for _l in (_value or [])
                 ]),
             },
         },
@@ -661,7 +661,7 @@ DEFAULT_ACTIVITY_TAGS = [
             _('You need to be over 18 years old.'),
             (_('You can change your birthdate in your settings.')
              if not r.user.preferences.age else u''),
-        ) if r.user.is_authenticated() and r.user.preferences.age < 18
+        ) if r.user.is_authenticated() and (r.user.preferences.age is None or r.user.preferences.age < 18)
         else True,
     }),
 ]
@@ -697,8 +697,8 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'title': _('Profile'),
         'icon': 'profile',
         'url_variables': [
-            ('pk', '\d+', lambda (context): str(context['request'].user.id)),
-            ('username', _usernameRegexp, lambda (context): context['request'].user.username),
+            ('pk', '\d+', lambda context: str(context['request'].user.id)),
+            ('username', _usernameRegexp, lambda context: context['request'].user.username),
         ],
         'navbar_link_list': 'you',
         'authentication_required': True,

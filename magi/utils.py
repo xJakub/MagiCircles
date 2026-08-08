@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-from __future__ import print_function
-import os, string, random, csv, tinify, io, pytz, simplejson, datetime, operator, re, math, requests, urllib, urllib2, json
-import six
+import os, string, random, csv, tinify, io, pytz, simplejson, datetime, operator, re, math, requests, json
+from string import Formatter
+from functools import reduce
+import urllib.request
+import urllib.parse
 from PIL import Image
 from json.encoder import encode_basestring_ascii
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
+import collections.abc
 from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 from django.conf import settings as django_settings
@@ -73,9 +76,9 @@ except ImportError:
 # Lazy
 
 def _format_lazy(text, *args, **kwargs):
-    return unicode(text).format(*args, **kwargs)
+    return str(text).format(*args, **kwargs)
 
-format_lazy = lazy(_format_lazy, unicode)
+format_lazy = lazy(_format_lazy, str)
 __ = format_lazy
 
 # Example use:
@@ -83,9 +86,9 @@ __ = format_lazy
 # __('{} - {}', _('Customize profile'), __(_('Select {}'), lowerTranslation(_('Idol'))))
 
 def _lower_lazy(text):
-    return unicode(text).lower()
+    return str(text).lower()
 
-lowerTranslation = lazy(_lower_lazy, unicode)
+lowerTranslation = lazy(_lower_lazy, str)
 
 # Example use:
 # lowerTranslation(_('Idol')) -> idol
@@ -99,9 +102,9 @@ def markSafeJoin(strings, separator=u' '):
 def _join_lazy(strings, separator=u' - ', mark_safe=False):
     if mark_safe:
         return markSafeJoin(strings, separator=separator)
-    return separator.join([ unicode(string) for string in strings if string is not None ])
+    return separator.join([ str(string) for string in strings if string is not None ])
 
-joinTranslation = lazy(_join_lazy, unicode)
+joinTranslation = lazy(_join_lazy, str)
 
 def andJoin(strings, translated=True, mark_safe=False, language=None, or_=False, max=None):
     if not strings:
@@ -109,7 +112,7 @@ def andJoin(strings, translated=True, mark_safe=False, language=None, or_=False,
     if max is not None and len(strings) > max:
         strings = strings[:max] + [ _('More').lower() ]
     strings = [
-        _markSafeFormatEscapeOrNot(string) if mark_safe else unicode(string)
+        _markSafeFormatEscapeOrNot(string) if mark_safe else str(string)
         for string in strings if string is not None
     ]
     if len(strings) == 1:
@@ -129,24 +132,24 @@ def andJoin(strings, translated=True, mark_safe=False, language=None, or_=False,
         return _mark_safe(string)
     return string
 
-andJoinTranslation = lazy(andJoin, unicode)
+andJoinTranslation = lazy(andJoin, str)
 
 def getTranslatedName(d, field_name='name', language=None):
     value = d.get(u'{}s'.format(field_name), {}).get(
         language or get_language(),
         d.get(field_name, None),
     )
-    return unicode(value) if value is not None else None
+    return str(value) if value is not None else None
 
-getTranslatedNameLazy = lazy(getTranslatedName, unicode)
+getTranslatedNameLazy = lazy(getTranslatedName, str)
 
 def ordinalNumber(n):
     return "%d%s" % (n, "tsnrhtdd"[(n / 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
 
 def translatedOrdinalNumber(n):
-    return unicode(_(ordinalNumber(n)))
+    return str(_(ordinalNumber(n)))
 
-ordinalNumberLazy = lazy(translatedOrdinalNumber, unicode)
+ordinalNumberLazy = lazy(translatedOrdinalNumber, str)
 
 ############################################################
 # Characters
@@ -162,7 +165,7 @@ _CHARACTERS_IMAGES = {
 
 _CHARACTERS_IMAGES_UNICODE = {
     _key: OrderedDict([
-        (unicode(_pk), _image)
+        (str(_pk), _image)
         for (_pk, _name, _image) in getattr(django_settings, _key, [])
     ]) for _key in ALL_CHARACTERS_KEYS
 }
@@ -176,7 +179,7 @@ _CHARACTERS_NAMES = {
 
 _CHARACTERS_NAMES_UNICODE = {
     _key: OrderedDict([
-        (unicode(_pk), _name)
+        (str(_pk), _name)
         for (_pk, _name, _image) in getattr(django_settings, _key, [])
     ]) for _key in ALL_CHARACTERS_KEYS
 }
@@ -188,7 +191,7 @@ _CHARACTERS_LOCALIZED_NAMES = {
 
 _CHARACTERS_LOCALIZED_NAMES_UNICODE = {
     _key: OrderedDict([
-        (unicode(_pk), _names)
+        (str(_pk), _names)
         for (_pk, _names) in getattr(django_settings, '{}_NAMES'.format(_key), {}).items()
     ]) for _key in ALL_CHARACTERS_KEYS
 }
@@ -200,7 +203,7 @@ _CHARACTERS_BIRTHDAYS = {
 
 _CHARACTERS_BIRTHDAYS_UNICODE = {
     _key: OrderedDict([
-        (unicode(_pk), _birthday)
+        (str(_pk), _birthday)
         for (_pk, _birthday) in getattr(django_settings, '{}_BIRTHDAYS'.format(_key), {}).items()
     ]) for _key in ALL_CHARACTERS_KEYS
 }
@@ -240,7 +243,7 @@ def getTotalCharacters(key='FAVORITE_CHARACTERS'):
     return len(getCharacters(key=key))
 
 def getCharactersPks(key='FAVORITE_CHARACTERS'):
-    return _CHARACTERS_NAMES.get(key, {}).keys()
+    return list(_CHARACTERS_NAMES.get(key, {}).keys())
 
 def isValidCharacterPk(pk, key='FAVORITE_CHARACTERS'):
     return (
@@ -249,7 +252,7 @@ def isValidCharacterPk(pk, key='FAVORITE_CHARACTERS'):
     )
 
 def isValidCharacterNth(nth, key='FAVORITE_CHARACTERS'):
-    return unicode(nth) in [ unicode(i) for i in range(1, getCharactersTotalFavoritable(key) + 1) ]
+    return str(nth) in [ str(i) for i in range(1, getCharactersTotalFavoritable(key) + 1) ]
 
 def getCharacterNamesFromPk(pk, key='FAVORITE_CHARACTERS'):
     return {
@@ -476,7 +479,7 @@ def isCharactersUserFavorite(pk, key='FAVORITE_CHARACTERS', favorite_characters=
         if key and current_key != key:
             continue
         for position, favorite_character in current_favorite_characters.items():
-            if favorite_character['pk'] and unicode(favorite_character['pk']) == unicode(pk):
+            if favorite_character['pk'] and str(favorite_character['pk']) == str(pk):
                 return position
     return False
 
@@ -507,8 +510,8 @@ def getCharactersFavoriteCuteForm(only_one=True):
             'title': verbose_field_name,
             'to_cuteform': to_cuteform_lambda(key),
             'extra_settings': {
-	        'modal': 'true',
-	        'modal-text': 'true',
+                'modal': 'true',
+                'modal-text': 'true',
             },
         }
         for key, fields in getCharactersFavoriteFields(only_one=only_one).items()
@@ -590,7 +593,7 @@ NATIVE_LANGUAGES = OrderedDict(getattr(django_settings, 'NATIVE_LANGUAGES', []))
 
 # es -> spanish
 LANGUAGES_NAMES = {
-    _language: unicode(_verbose_name).replace(' ', '_').lower()
+    _language: str(_verbose_name).replace(' ', '_').lower()
     for _language, _verbose_name in LANGUAGES_DICT.items()
 }
 # spanish -> es
@@ -682,7 +685,7 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
-    def __unicode__(self):
+    def __str__(self):
         return self.__dict__.get('unicode', u', '.join([
             u'{}: {}'.format(k, v) for k, v in self.__dict__.items()]))
 
@@ -744,7 +747,7 @@ def allPermissions(groups):
     """
     List of all existing permissions
     """
-    return groupsForAllPermissions(groups).keys()
+    return list(groupsForAllPermissions(groups).keys())
 
 def groupsPerPermission(groups, permission):
     """
@@ -934,7 +937,7 @@ custom_item_template = property(lambda view: '{}Item'.format(view.collection.nam
 # For direct values (generated settings)
 
 def getAllCurrentSeasons():
-    return getattr(django_settings, 'SEASONAL_SETTINGS', {}).keys()
+    return list(getattr(django_settings, 'SEASONAL_SETTINGS', {}).keys())
 
 def getValueInSeason(season_name, key, default=None):
     return getattr(django_settings, 'SEASONAL_SETTINGS', {})[season_name].get(key, default)
@@ -953,7 +956,7 @@ def getValueInAllCurrentSeasons(key):
     }
 
 def getRandomValueInCurrentSeasons(key):
-    return random.choice(getValueInAllCurrentSeasons(key).values())
+    return random.choice(list(getValueInAllCurrentSeasons(key).values()))
 
 # For variables in seasons.py module (will retrieve them from string names, ex: 'getAllArts')
 
@@ -1076,7 +1079,7 @@ def globalContext(request=None, email=False):
         if request:
             context['hidenavbar'] = 'hidenavbar' in request.GET
         context['javascript_translated_terms_json'] = simplejson.dumps(
-            { term: unicode(_(term)) for term in context['javascript_translated_terms'] })
+            { term: str(_(term)) for term in context['javascript_translated_terms'] })
 
         cuteFormFieldsForContext({
             'language': {
@@ -1169,7 +1172,7 @@ def isRequestCrawler(request):
     return False
 
 def getDescriptionFromItem(item):
-    description = unicode(item)
+    description = str(item)
     for field_name, is_markdown in [
             ('t_m_description', True),
             ('t_description', False),
@@ -1263,7 +1266,7 @@ def articleJsonLd(
         'description': description,
         'datePublished': torfc2822(date_published) if date_published else None,
         'dateModified': torfc2822(date_modified) if date_modified else None,
-        'keywords': u', '.join([unicode(keyword) for keyword in keywords ]),
+        'keywords': u', '.join([str(keyword) for keyword in keywords ]),
         'articleBody': body,
     }.items():
         if value:
@@ -1316,14 +1319,14 @@ def articleJsonLdFromActivity(activity, context):
         description=activity.summarize(),
         date_published=activity.creation,
         date_modified=activity.creation,
-        keywords=activity.t_tags.values() + RAW_CONTEXT.get('hashtags', []),
+        keywords=list(activity.t_tags.values()) + RAW_CONTEXT.get('hashtags', []),
         body=activity.message[1],
         context=context,
     )
 
 def articleJsonLdFromItem(item, body=None, context=None):
     articleJsonLd(
-        article_title=unicode(item),
+        article_title=str(item),
         owner=getOwnerFromItem(item),
         images_urls=[
             staticImageURL(
@@ -1389,7 +1392,7 @@ def getAccountTypesFromSession(request):
         return []
     if 'account_types' not in request.session:
         request.session['account_types'] = {
-            unicode(account.id): account.type
+            str(account.id): account.type
             for account in RAW_CONTEXT['account_model'].objects.filter(**{
                     RAW_CONTEXT['account_model'].selector_to_owner():
                     request.user
@@ -1446,7 +1449,7 @@ def _callToCuteForm(field_name, model, to_cuteform, key, value):
         return key
     elif to_cuteform == 'value':
         return value
-    if to_cuteform.func_code.co_argcount == 3: # to_cuteform takes 3 arguments
+    if to_cuteform.__code__.co_argcount == 3: # to_cuteform takes 3 arguments
         if not model:
             raise ValueError('When to_cuteform takes 3 arguments, it\'s required to specify the model class.')
         if field_name.startswith('i_'):
@@ -1530,7 +1533,7 @@ def cuteFormFieldsForContext(cuteform_fields, context, form=None, prefix=None, a
         }
         # Add title if any
         if 'title' in field:
-            context['cuteform_fields'][selector]['title'] = _(u'Select {}').format(unicode(field['title']).lower())
+            context['cuteform_fields'][selector]['title'] = _(u'Select {}').format(str(field['title']).lower())
         # Add extra settings if any
         if 'extra_settings' in field:
             context['cuteform_fields'][selector].update(field['extra_settings'] if not ajax else {
@@ -1558,7 +1561,7 @@ def cuteFormFieldsForContext(cuteform_fields, context, form=None, prefix=None, a
                         )
                     else:
                         cuteform = staticImageURL(
-                            unicode(cuteform_value),
+                            str(cuteform_value),
                             folder=field.get('image_folder', field_name),
                         )
                 # Transform to flaticon
@@ -1573,13 +1576,13 @@ def cuteFormFieldsForContext(cuteform_fields, context, form=None, prefix=None, a
                 elif transform == CuteFormTransform.ImageWithText:
                     cuteform = u'<img src="{img}"> {text}'.format(
                         img=staticImageURL(
-                            unicode(cuteform_value),
+                            str(cuteform_value),
                             folder=field.get('image_folder', field_name),
                         ),
                         text=u' {}'.format(value) if transform == CuteFormTransform.FlaticonWithText else '',
                     )
                 else:
-                    cuteform = unicode(cuteform_value)
+                    cuteform = str(cuteform_value)
             # Add in key, value in context for field
             context['cuteform_fields'][selector][CuteFormType.to_string[field_type]][key] = cuteform
 
@@ -1773,10 +1776,10 @@ class uploadToRandom(_uploadToBase):
 @deconstructible
 class uploadItem(_uploadToBase):
     def get_name(self, instance, filename, limit_to):
-        id = unicode(instance.pk if instance.pk else randomString(6))
+        id = str(instance.pk if instance.pk else randomString(6))
         return u'{id}{string}-{random}'.format(
             id=id,
-            string=tourldash(unicode(instance))[:(limit_to - len(id) - self.length)],
+            string=tourldash(str(instance))[:(limit_to - len(id) - self.length)],
             random=randomString(self.length),
         )
 
@@ -1971,7 +1974,7 @@ def birthdayURL(user):
 def getAge(birthdate, formatted=False):
     if not birthdate:
         return None
-    if isinstance(birthdate, six.string_types):
+    if isinstance(birthdate, str):
         birthdate = parse_date(birthdate)
     today = datetime.date.today()
     age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
@@ -2067,13 +2070,13 @@ def addYearToEventWithoutYear(start_date=None, end_date=None, return_have_year=F
         end_date = start_date
 
     # Transform strings to dates
-    if isinstance(start_date, six.string_types):
+    if isinstance(start_date, str):
         try:
             start_date = pytz.utc.localize(datetime.datetime.strptime(start_date, '%Y-%m-%d'))
         except ValueError:
             start_date = datetime.datetime.strptime(start_date, '%m-%d')
             start_date = (start_date.month, start_date.day)
-    if isinstance(end_date, six.string_types):
+    if isinstance(end_date, str):
         try:
             end_date = pytz.utc.localize(datetime.datetime.strptime(end_date, '%Y-%m-%d'))
         except ValueError:
@@ -2228,14 +2231,14 @@ def getMedalImage(nth):
     return staticImageURL(u'medal{}'.format(4 - nth), folder='badges') if nth < 4 else None
 
 def tourldash(string, separator=u'-'):
-    separator = unicode(separator)
+    separator = str(separator)
     if not string:
         return ''
     s =  u''.join(e if e.isalnum() else separator for e in string)
     return separator.join([s for s in s.split(separator) if s])[:MAX_URL_LENGTH]
 
 def notTranslatedWarning(string):
-    if string and isinstance(string, six.string_types) and django_settings.DEBUG:
+    if string and isinstance(string, str) and django_settings.DEBUG:
         return u'❌🌏 {}'.format(string)
     return string
 
@@ -2262,7 +2265,7 @@ def getTranslation(term, language):
     old_lang = get_language()
     if old_lang != language:
         translation_activate(language)
-    translation = unicode(term(language)) if callable(term) else unicode(term)
+    translation = str(term(language)) if callable(term) else str(term)
     if old_lang != language:
         translation_activate(old_lang)
     return translation
@@ -2277,13 +2280,13 @@ def getAllTranslations(term, unique=False, include_en=True):
         if not include_en and lang == 'en':
             continue
         translation_activate(lang)
-        translations[lang] = unicode(term(lang)) if callable(term) else unicode(term)
+        translations[lang] = str(term(lang)) if callable(term) else str(term)
     if unique:
         if include_en:
             en_translation = translations['en']
         else:
             translation_activate('en')
-            en_translation = unicode(term(lang)) if callable(term) else unicode(term)
+            en_translation = str(term(lang)) if callable(term) else str(term)
     translation_activate(old_lang)
     if unique:
         translations = {
@@ -2294,7 +2297,7 @@ def getAllTranslations(term, unique=False, include_en=True):
     return translations
 
 def spaceOutCode(code, block_size=2):
-    code = unicode(code).replace(' ', '')
+    code = str(code).replace(' ', '')
     return ' '.join(code[i:i + block_size] for i in range(0, len(code), block_size))
 
 def getAllTranslationsOfModelField(item, field_name='name', unique=False):
@@ -2307,6 +2310,8 @@ class LazyEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Promise):
             return force_text(obj)
+        if isinstance(obj, (collections.abc.KeysView, collections.abc.ValuesView)):
+            return list(obj)
         return super(LazyEncoder, self).default(obj)
 
 def jsv(v):
@@ -2314,12 +2319,12 @@ def jsv(v):
         return mark_safe(json.dumps(v, cls=LazyEncoder).replace('"True"', '"true"').replace('"False"', '"false"'))
     if isinstance(v, bool):
         return 'true' if v else 'false'
-    if isinstance(v, six.string_types):
+    if isinstance(v, str):
         return mark_safe(u'"{}"'.format(v))
     return v
 
 def templateVariables(string):
-    return [x[1] for x in string._formatter_parser() if x[1]]
+    return [x[1] for x in Formatter().parse(str(string)) if x[1]]
 
 def validateTemplate(template, valid_variables, raise_error=True, raise_error_on_field_name=None):
     if template:
@@ -2432,6 +2437,8 @@ def cmToHumanReadable(cm, return_list=False, cm_only=False):
 def inchesToHumanReadable(inches=None, cm=None, return_list=False, inches_only=False):
     if cm is not None and inches is None:
         inches = cmToInches(cm)
+    if inches is None:
+        return [] if return_list else u''
     if inches_only:
         return u'{}"'.format(int(round(inches)))
     if inches < 0:
@@ -2495,7 +2502,7 @@ def complementaryColor(hex_color=None, rgb=None):
 
 def listUnique(list, remove_empty=False):
     """remove_empty will call hasValue and skip"""
-    return OrderedDict([(item, None) for item in list if not remove_empty or hasValue(item)]).keys()
+    return [item for item in OrderedDict([(item, None) for item in list if not remove_empty or hasValue(item)]).keys()]
 
 class MagiQueryDict(object):
     """
@@ -2621,8 +2628,8 @@ class MagiQueryDict(object):
             return None
 
     # Unicode
-    def __unicode__(self):
-        return unicode(self.querydict)
+    def __str__(self):
+        return str(self.querydict)
 
 def getIndex(list, index, default=None):
     try:
@@ -2632,9 +2639,9 @@ def getIndex(list, index, default=None):
 
 def updatedDict(d, *args, **kwargs):
     if kwargs.get('copy', False):
-	d = d.copy()
+        d = d.copy()
     for new_d in args:
-	d.update(new_d)
+        d.update(new_d)
     return d
 
 def mergeDicts(d, *args):
@@ -2801,9 +2808,9 @@ def couldSpeakEnglish(language=None, request=None):
 
 def pageTitleFromPrefixes(title_prefixes, page_title):
     return u' | '.join([
-        unicode(page_title)
+        str(page_title)
     ] + [
-        unicode(prefix['title'])
+        str(prefix['title'])
         for prefix in reversed(title_prefixes or [])
         if prefix.get('include_in_title', True)
     ])
@@ -2883,7 +2890,7 @@ def redirectWhenNotAuthenticated(request, context, next_title=None):
         if current_url.startswith('/ajax/'):
             raise HttpRedirectException(u'/signup/')
         raise HttpRedirectException(u'/signup/{}'.format(u'?next={}{}'.format(
-            current_url, u'&next_title={}'.format(unicode(next_title)) if next_title else u'')))
+            current_url, u'&next_title={}'.format(str(next_title)) if next_title else u'')))
 
 ############################################################
 # Fail safe get_object_or_404
@@ -2911,7 +2918,7 @@ def dumpModel(instance):
         if isinstance(dump[key], models.Model):
             dump[key] = dump[key].pk
         else:
-            dump[key] = unicode(dump[key])
+            dump[key] = str(dump[key])
     return dump
 
 def prepareCache(d):
@@ -2925,7 +2932,7 @@ def prepareCache(d):
     elif isinstance(d, tuple):
         return tuple([ prepareCache(value) for value in d ])
     is_supported = False
-    for supported_type in [ six.string_types, int, float, bool, type(None) ]:
+    for supported_type in [ str, int, float, bool, type(None) ]:
         if isinstance(d, supported_type):
             is_supported = True
             break
@@ -2933,7 +2940,7 @@ def prepareCache(d):
         try:
             json.dumps(d)
         except TypeError:
-            return unicode(d)
+            return str(d)
     return d
 
 def cacheRelExtra(
@@ -3261,7 +3268,7 @@ def getVerboseNameOfRelatedField(
         l = [ prefix ] + l
     if return_as_list:
         return l
-    return separator.join([unicode(verbose_name) for verbose_name in l ])
+    return separator.join([str(verbose_name) for verbose_name in l ])
 
 def getFilterFieldNameOfRelatedItem(model, related_item_field_name):
     return _getFilterFieldNameOfRelatedItem(model, related_item_field_name)
@@ -3351,7 +3358,7 @@ def hasValue(value, false_bool_is_value=True, none_string_is_value=False):
         return bool(value)
     if value == 'None' and none_string_is_value:
         return True
-    return value is not None and unicode(value) not in ['', 'None'] + (
+    return value is not None and str(value) not in ['', 'None'] + (
         ['False'] if not false_bool_is_value else [])
 
 def getRelOptionsDict(rel_options=None, model_class=None, field_name=None):
@@ -3497,9 +3504,14 @@ def addRelatedCaches(model_class, caches):
             if not getattr(rel_model_class, 'REVERSE_RELATED_CACHES', []):
                 rel_model_class.REVERSE_RELATED_CACHES = []
             is_m2m = isinstance(model_field, models.ManyToManyField)
+            # Reverse access to a OneToOneField is a single instance; reverse access to
+            # a plain ForeignKey or a ManyToManyField is always a manager (needs .all()).
+            # This is distinct from is_m2m above, which is about model_field's own type
+            # and drives the forward-side caching below.
+            reverse_is_many = not isinstance(model_field, models.OneToOneField)
             rel_model_class.REVERSE_RELATED_CACHES.append((
                 model_field.rel.get_accessor_name(),
-                cache_name, is_m2m,
+                cache_name, reverse_is_many,
             ))
             label = notTranslatedWarning(model_field._verbose_name)
             rel_collection_name = getattr(rel_model_class, 'collection_name', None)
@@ -3789,11 +3801,11 @@ def filterByTranslatedValue(
             elif modelHasField(queryset.model, short_source_field_name):
                 other_languages_fields.append(short_source_field_name)
 
-    if isinstance(value, six.string_types):
+    if isinstance(value, str):
         d_value = encode_basestring_ascii(value)[1:-1]
 
     if mode == FilterByMode.Exact:
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             d_value = u'"{}"'.format(d_value)
         if language:
             return _return(
@@ -3810,7 +3822,7 @@ def filterByTranslatedValue(
             return _return(condition)
 
     elif mode == FilterByMode.StartsWith:
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             d_value = u'"{}'.format(d_value)
         if language:
             return _return(Q(**{
@@ -3891,17 +3903,17 @@ class ManyToManyCSVField(forms_CharField):
         if isinstance(value, list):
             if isinstance(value[0], self.m2m_items_model_class):
                 value = [getattr(item, self.m2m_lookup_field_name) for item in value]
-            elif isinstance(value[0], six.integer_types): # pk
+            elif isinstance(value[0], int): # pk
                 try:
                     value = [ getattr(self._known_items_by_pk[item_pk], self.m2m_lookup_field_name) for item_pk in value ]
                 except KeyError:
                     items = list(self.queryset.filter(pk__in=value))
                     self._save_known_items(items)
                     value = [ getattr(item, self.m2m_lookup_field_name) for item in items ]
-            if not isinstance(value[0], six.string_types):
+            if not isinstance(value[0], str):
                 raise ValueError('Unknown value {} ({})'.format(type(value), value))
             return u', '.join(value)
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             return value
         raise ValueError('Unknown value {} ({})'.format(type(value), value))
 
@@ -3926,7 +3938,7 @@ class CSVChoiceField(forms_MultipleChoiceField):
             return None
         if isinstance(value, list):
             return value
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             return split_data(value)
         raise ValueError('Unknown value {} ({})'.format(type(value), value))
 
@@ -4122,7 +4134,7 @@ def _equivalentFilters_isFilterEqual(key, values, field_details, value_to_compar
             if sorted(values) == sorted(option):
                 return True
         elif len(values) == 1:
-            if unicode(values[0]) == unicode(option):
+            if str(values[0]) == str(option):
                 return True
         else:
             # If multiple values are specified for a field that's not multi-values,
@@ -4265,13 +4277,13 @@ def newOrder(current_order, insert_after=None, insert_before=None, insert_instea
     Works with dicts. If you're inserting an item not in the dict, you need to provide a value for the key in dict_values.
     """
     if isinstance(current_order, OrderedDict):
-        order = listUnique(order + current_order.keys())
+        order = listUnique(order + list(current_order.keys()))
     else:
         order = listUnique(order + current_order)
     will_be_reinserted_fields = flattenListOfLists(sum([
-        (insert_after or {}).values(), (insert_before or {}).values(), (insert_instead or {}).values(),
-        (insert_at or {}).values(), (insert_at_instead or {}).values(), (insert_at_from_last or {}).values(),
-        (insert_at_from_last_instead or {}).values(),
+        list((insert_after or {}).values()), list((insert_before or {}).values()), list((insert_instead or {}).values()),
+        list((insert_at or {}).values()), list((insert_at_instead or {}).values()), list((insert_at_from_last or {}).values()),
+        list((insert_at_from_last_instead or {}).values()),
     ], []))
     filtered_order = [field for field in order if field not in will_be_reinserted_fields]
     if insert_after or insert_before or insert_instead:
@@ -4379,7 +4391,7 @@ def formUniquenessCheck(
             },
         )
         if len(fields_dict) == 1 and not clean_per_field:
-            form.add_error(fields_dict.keys()[0], validation_error)
+            form.add_error(list(fields_dict.keys())[0], validation_error)
             return False
         else:
             raise validation_error
@@ -4458,7 +4470,7 @@ def toFieldsItemsGallery(d, items, image_field='image_url'):
     d['images'] = [{
         'link': item.item_url,
         'ajax_link': item.ajax_item_url,
-        'link_text': unicode(item),
+        'link_text': str(item),
         'value': getattr(item, image_field, None),
     } for item in items if getattr(item, image_field, None)]
     return d
@@ -4500,8 +4512,8 @@ def extraFieldsNavigation(item, extra_fields, to_order_field_value=None, field_n
             extra_fields.append((navigation_field_name, {
                 'verbose_name': verbose,
                 'icon': icon,
-                'link_text': _('Open {thing}').format(thing=unicode(other_item.collection_title).lower()),
-                'value': unicode(other_item),
+                'link_text': _('Open {thing}').format(thing=str(other_item.collection_title).lower()),
+                'value': str(other_item),
                 'link': other_item.item_url,
                 'ajax_link': other_item.ajax_item_url,
                 'image_for_link': to_image(other_item) if to_image else getImageForPrefetched(other_item),
@@ -4511,13 +4523,13 @@ def extraFieldsNavigation(item, extra_fields, to_order_field_value=None, field_n
         # Next
         _extra_field_episode_navigation(
             lambda x: x + 1, 'next_{}'.format(item.collection_name), 'toggler',
-            _('Next {thing}').format(thing=unicode(item.collection_title).lower()),
+            _('Next {thing}').format(thing=str(item.collection_title).lower()),
         )
         # Previous
         if order_field_value > starts_at:
             _extra_field_episode_navigation(
                 lambda x: x - 1, 'previous_{}'.format(item.collection_name), 'back',
-                _('Previous {thing}').format(thing=unicode(item.collection_title).lower()),
+                _('Previous {thing}').format(thing=str(item.collection_title).lower()),
             )
 
 ############################################################
@@ -4531,25 +4543,16 @@ def split_data(data):
         return []
     if isinstance(data, list):
         return data
-    def utf_8_encoder(unicode_csv_data):
-        for line in unicode_csv_data:
-            yield line.encode('utf-8')
-
-    def unicode_csv_reader(unicode_csv_data, **kwargs):
-        csv_reader = csv.reader(utf_8_encoder(unicode_csv_data), **kwargs)
-        for row in csv_reader:
-            yield [unicode(cell, 'utf-8') for cell in row]
-
-    reader = unicode_csv_reader([data])
-    for reader in reader:
-        return [r for r in reader]
+    reader = csv.reader([data])
+    for row in reader:
+        return [cell for cell in row]
     return []
 
 def join_data(*args):
     """
     Takes a list of unicode strings and return a CSV string.
     """
-    data = u'\"' + u'","'.join([unicode(value).replace('\n', ' ').replace('\r', ' ').replace('"','\"') for value in args]) + u'\"'
+    data = u'\"' + u'","'.join([str(value).replace('\n', ' ').replace('\r', ' ').replace('"','\"') for value in args]) + u'\"'
     return data if data != '""' else None
 
 def csvToDict(row, titles_row, snake_case=False):
@@ -4828,7 +4831,7 @@ def saveGeneratedImage(image, path=None, upload=False, instance=None, model=None
     elif isinstance(image, Image.Image):
         image.save(path)
     else:
-        raise NotImplementedError(u'Can\'t save image, unknwon type ' + unicode(type(image)))
+        raise NotImplementedError(u'Can\'t save image, unknwon type ' + str(type(image)))
     # Return local image path or upload
     if not upload:
         return path
@@ -4864,7 +4867,7 @@ def makeImageGrid(
     line = 0
     position = 0
     for image in images:
-        if isinstance(image, six.string_types):
+        if isinstance(image, str):
             data, imagefile = imageURLToImageFile(image, return_data=True)
             if not imagefile:
                 continue
@@ -4901,9 +4904,9 @@ def makeBadgeImage(badge=None, badge_image=None, badge_rank=None, width=None, pa
     filename = 'badge{}'.format(badge_rank or '')
     border_image_url = staticImageURL(filename, folder='badges', full=True)
     try:
-        border_image = WandImage(file=urllib2.urlopen(border_image_url))
+        border_image = WandImage(file=urllib.request.urlopen(border_image_url))
     except:
-        border_image = WandImage(file=urllib2.urlopen('https://i.imgur.com/g2bVQoS.png'))
+        border_image = WandImage(file=urllib.request.urlopen('https://i.imgur.com/g2bVQoS.png'))
     width = width or border_image.width
     if width != border_image.width:
         border_image.resize(width=width, height=width)
@@ -4932,7 +4935,7 @@ def staticFileURL(
     # /!\ Can't be called at global level, unless with_static_url=False
     if not hasValue(path, false_bool_is_value=False):
         return None
-    path = unicode(path)
+    path = str(path)
     if not extension and '.' not in path and default_extension:
         extension = default_extension
     if isFullURL(path):
@@ -5067,7 +5070,7 @@ def isMarkedSafe(string):
     return isinstance(string, SafeText)
 
 def _markSafeFormatEscapeOrNot(string):
-    return unicode(string if (
+    return str(string if (
         isinstance(string, SafeText)
         or isinstance(string, SafeBytes)
     ) else escape(string))
@@ -5184,7 +5187,7 @@ def getSearchFieldHelpText(search_fields, model_class, labels, translated_fields
         if label is None:
             and_more = True
         elif label:
-            label = unicode(label)
+            label = str(label)
             field_labels.append(label if first and not all_lower else label.lower())
             first = False
     if field_labels:
@@ -5311,10 +5314,10 @@ def rfc3066ToIso6392(language):
 googleTranslateFixLanguage = rfc3066ToIso6392
 
 def translationSentence(from_language, to_language):
-    return unicode(_(u'Translate from %(from_language)s to %(to_language)s')).replace(
-        '%(from_language)s', unicode(LANGUAGES_DICT.get(from_language, '')),
+    return str(_(u'Translate from %(from_language)s to %(to_language)s')).replace(
+        '%(from_language)s', str(LANGUAGES_DICT.get(from_language, '')),
     ).replace(
-        '%(to_language)s', unicode(LANGUAGES_DICT.get(to_language, '')),
+        '%(to_language)s', str(LANGUAGES_DICT.get(to_language, '')),
     )
 
 def translationURL(
@@ -5381,9 +5384,9 @@ def artSettingsToGetParameters(settings):
         elif k == 'url':
             preview = staticImageURL(v)
             if v:
-                parameters['preview'] = urllib.quote(v.encode('utf8'))
+                parameters['preview'] = urllib.parse.quote(v.encode('utf8'))
         elif k == 'foreground_url':
-            parameters['foreground_preview'] = urllib.quote(staticImageURL(v).encode('utf8'))
+            parameters['foreground_preview'] = urllib.parse.quote(staticImageURL(v).encode('utf8'))
         else:
             parameters[u'{}_preview'.format(k)] = v
     return parameters

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import datetime
 from collections import OrderedDict
 from django.contrib.auth.models import User
@@ -74,7 +73,7 @@ class AccountAsOwnerModel(MagiModel):
     @classmethod
     def cached_account_extra(self, d):
         d['owner']['pk'] = d['owner']['id']
-        d['owner']['unicode'] = unicode(d['owner']['id'])
+        d['owner']['unicode'] = str(d['owner']['id'])
         d['item_url'] = u'/user/{}/#{}'.format(d['owner']['id'], d['id'])
         d['full_item_url'] = u'{}{}'.format(django_settings.SITE_URL, d['item_url'])
         d['http_item_url'] = u'http:' + d['full_item_url'] if 'http' not in d['full_item_url'] else d['full_item_url']
@@ -83,7 +82,7 @@ class AccountAsOwnerModel(MagiModel):
     def to_cache_account(self):
         return {
             'id': self.account_id,
-            'unicode': unicode(self.account),
+            'unicode': str(self.account),
             'owner': {
                 'id': self.account.owner_id,
             },
@@ -258,7 +257,7 @@ class BaseAccount(CacheOwner):
     def leaderboard_image_url(self):
         return get_image_url_from_path(u'static/img/badges/medal{}.png'.format(4 - self.cached_leaderboard))
 
-    def __unicode__(self):
+    def __str__(self):
         if self.id:
             return u'{}{}'.format(
                 self.nickname if self.nickname else self.cached_owner.username,
@@ -378,7 +377,7 @@ def getBaseModelWithVersions(
 
     has_images = bool([version for version in versions.values() if version.get('image', None)])
     has_icons = bool([version for version in versions.values() if version.get('icon', None)])
-    has_languages = bool(getLanguagesForVersion(versions[versions.keys()[0]])) if versions else False
+    has_languages = bool(getLanguagesForVersion(versions[list(versions.keys())[0]])) if versions else False
     if not has_languages:
         if extra_fields_per_language:
             if django_settings.DEBUG:
@@ -412,7 +411,7 @@ def getBaseModelWithVersions(
         VERSIONS_CHOICES = [(_name, _info['translation']) for _name, _info in VERSIONS.items()]
         c_versions = models.TextField(
             _('Server availability'), blank=True, null=True,
-            default=u'"{}"'.format(versions.keys()[0]),
+            default=u'"{}"'.format(list(versions.keys())[0]),
         )
         VERSIONS_HAVE_LANGUAGES = has_languages
         VERSIONS_HAVE_IMAGES = has_images
@@ -557,12 +556,12 @@ def getBaseModelWithVersions(
         ############################################################
         # Unicode
 
-        def __unicode__(self):
+        def __str__(self):
             relevant_name = self.relevant_name
             return (
-                (unicode(relevant_name) if relevant_name else None)
+                (str(relevant_name) if relevant_name else None)
                 or default_verbose_name
-                or super(BaseModelWithVersions, self).__unicode__()
+                or super(BaseModelWithVersions, self).__str__()
             )
 
         class Meta(MagiModel.Meta):
@@ -571,7 +570,7 @@ def getBaseModelWithVersions(
     ############################################################
     # Add fields and utils per version
 
-    default_ordering = getFieldNameForVersion('{}start_date', versions[versions.keys()[0]])
+    default_ordering = getFieldNameForVersion('{}start_date', versions[list(versions.keys())[0]])
 
     BaseModelWithVersions._versions_by_prefixes = {
         version['prefix']: version_name
@@ -704,8 +703,8 @@ class _BaseEvent(MagiModel):
     d_m_descriptions = models.TextField(_('Details'), null=True)
     _cache_description = models.TextField(null=True)
 
-    def __unicode__(self):
-        return unicode(self.t_name)
+    def __str__(self):
+        return str(self.t_name)
 
     class Meta(MagiModel.Meta):
         abstract = True

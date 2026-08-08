@@ -1,4 +1,3 @@
-from __future__ import print_function
 import sys # at the end remove
 from django.conf import settings as django_settings
 from django.core.management.base import BaseCommand, CommandError
@@ -91,11 +90,11 @@ def dump_item(fileds, model, item, unique_fields, fields, foreign_keys, many_to_
     for field in unique_fields:
         value = get_value(item, field)
         if value is not None:
-            unique_data[field] = unicode(value)
+            unique_data[field] = str(value)
     for field in fields:
         value = get_value(item, field)
         if value is not None:
-            data[field] = unicode(value)
+            data[field] = str(value)
     fk_var_name = 'fk_{}_{}'.format(model.__name__, item.pk)
     print_to_files(fileds, u'try: noop({fk_var_name})\nexcept NameError:\n'.format(fk_var_name=fk_var_name))
     lines_to_print_under_except = [

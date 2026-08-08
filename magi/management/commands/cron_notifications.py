@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 import datetime
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import ugettext_lazy as _, string_concat, activate as translation_activate
@@ -35,7 +34,7 @@ class Command(BaseCommand):
                     context['user'] = notification.owner
                     try:
                         send_email(
-                            subject=u'{} {}: {}'.format(SITE_NAME_PER_LANGUAGE.get(language, SITE_NAME), unicode(_('Notification')), notification.localized_message),
+                            subject=u'{} {}: {}'.format(SITE_NAME_PER_LANGUAGE.get(language, SITE_NAME), str(_('Notification')), notification.localized_message),
                             template_name='notification',
                             to=[notification.owner.email],
                             context=context,

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
-from __future__ import print_function
-import string, copy
+import string, copy, inspect
 from collections import OrderedDict
 from django.utils.translation import ugettext_lazy as _, string_concat, get_language
 from django.utils import timezone
@@ -263,7 +262,7 @@ class _View(object):
             or getattr(self, 'fields_extra', None)
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{}: {}'.format(self.collection, self.view_title())
 
 class MagiCollection(object):
@@ -524,7 +523,7 @@ class MagiCollection(object):
                             setattr(request, u'total_fk_owner_ids_{}'.format(name), len(all_fk_owner_ids))
                     setattr(request, u'add_to_{}'.format(name), fk_owner_ids)
                 else:
-                    fk_owner_ids = ','.join(unicode(i) for i in (
+                    fk_owner_ids = ','.join(str(i) for i in (
                         getAccountIdsFromSession(request)
                         if fk_owner == 'account'
                         else collection.queryset.model.owner_ids(request.user)))
@@ -608,12 +607,12 @@ class MagiCollection(object):
                         # Exclude limited account types
                         if self.collection and self.collection.collectible_limit_to_account_types is not None:
                             self.fields[model_class.fk_as_owner].choices = [
-                                (c.pk, unicode(c)) for c in filtered_queryset
+                                (c.pk, str(c)) for c in filtered_queryset
                                 if c.type in self.collection.collectible_limit_to_account_types
                             ]
                         else:
                             self.fields[model_class.fk_as_owner].choices = [
-                                (c.pk, unicode(c)) for c in filtered_queryset
+                                (c.pk, str(c)) for c in filtered_queryset
                             ]
                         total_choices = len(self.fields[model_class.fk_as_owner].choices)
                         if total_choices == 0:
@@ -646,7 +645,7 @@ class MagiCollection(object):
                             collection = model_class.owner_collection()
                             self.beforefields = mark_safe(u'<p class="col-sm-offset-4">{}</p><br>'.format(
                                 _('Adding to your {thing} {name}').format(
-                                    thing=unicode(collection.title).lower(),
+                                    thing=str(collection.title).lower(),
                                     name=self.fields[model_class.fk_as_owner].choices[0][1],
                                 )))
                             self.fields[model_class.fk_as_owner] = forms.HiddenModelChoiceField(
@@ -675,9 +674,9 @@ class MagiCollection(object):
                             item = getattr(self.instance, item_field_name)
                         for variable in self.collection.add_view.add_to_collection_variables:
                             if variable == 'unicode':
-                                self.collectible_variables[variable] = unicode(item)
+                                self.collectible_variables[variable] = str(item)
                             else:
-                                self.collectible_variables[variable] = unicode(getattr(item, variable))
+                                self.collectible_variables[variable] = str(getattr(item, variable))
 
             class Meta:
                 model = model_class
@@ -756,7 +755,7 @@ class MagiCollection(object):
                     if cuteform is not None:
                         cuteform = cuteform.copy()
                         if ('to_cuteform' in cuteform and field_name.startswith('i_')
-                            and failSafe(lambda: cuteform['to_cuteform'].func_code.co_argcount, exceptions=[ AttributeError ]) == 3):
+                            and failSafe(lambda: cuteform['to_cuteform'].__code__.co_argcount, exceptions=[ AttributeError ]) == 3):
                             cuteform['to_cuteform'] = self._to_cuteform_for_i_choices(cuteform['to_cuteform'], field_name)
                         if not cuteform.get('image_folder', None):
                             cuteform['image_folder'] = field_name
@@ -865,14 +864,14 @@ class MagiCollection(object):
                             try:
                                 owner = (
                                     request.user
-                                    if unicode(request.user.id) == unicode(request.GET[fk_as_owner])
+                                    if str(request.user.id) == str(request.GET[fk_as_owner])
                                     else model_class.get_owner_from_pk(request.GET[fk_as_owner])
                                 )
                             except ObjectDoesNotExist:
                                 raise Http404
 
                         title_prefixes.append({
-                            'title': unicode(owner),
+                            'title': str(owner),
                             'url': owner.item_url,
                         })
 
@@ -892,11 +891,11 @@ class MagiCollection(object):
                                 raise Http404
                         title_prefixes += [
                             {
-                                'title': unicode(account.cached_owner.username),
+                                'title': str(account.cached_owner.username),
                                 'url': account.cached_owner.item_url,
                             },
                             {
-                                'title': unicode(account),
+                                'title': str(account),
                                 'url': addParametersToURL(account.cached_owner.item_url, {
                                     'open': 'account',
                                     u'account{}'.format(account.pk): self.name,
@@ -1161,7 +1160,7 @@ class MagiCollection(object):
         }
         """
         formClass = self.form_class
-        if str(type(formClass)) == '<type \'instancemethod\'>':
+        if inspect.ismethod(formClass):
             formClass = formClass(request=None, context={})
         if formClass:
             form = formClass(request=None, collection=self)
@@ -1398,7 +1397,7 @@ class MagiCollection(object):
                     related_item.request = request
                     d = {
                         'verbose_name': verbose_name,
-                        'value': unicode(related_item),
+                        'value': str(related_item),
                         'icon': icons.get(field_name, icon),
                         'image': images.get(field_name, image),
                     }
@@ -1419,7 +1418,7 @@ class MagiCollection(object):
                         d['link'] = item_url
                         if allow_ajax_per_item:
                             d['ajax_link'] = getattr(related_item, 'ajax_item_url')
-                        d['link_text'] = unicode(_(u'Open {thing}')).format(thing=d['verbose_name'].lower())
+                        d['link_text'] = str(_(u'Open {thing}')).format(thing=d['verbose_name'].lower())
                         d['image_for_link'] = getImageForPrefetched(related_item)
                         d['image_for_link'] = item_image
                     elif item_image:
@@ -1471,7 +1470,7 @@ class MagiCollection(object):
                         item_view_has_permissions = False
                     to_append = {
                         'link': item_url if item_view_has_permissions else None,
-                        'link_text': unicode(related_item),
+                        'link_text': str(related_item),
                     }
                     if item_view_has_permissions and allow_ajax_per_item:
                         to_append['ajax_link'] = getattr(related_item, 'ajax_item_url', None)
@@ -1483,7 +1482,7 @@ class MagiCollection(object):
                         d['spread_across'] = True
                     else:
                         link_to_append = to_append.copy()
-                        link_to_append['value'] = unicode(related_item)
+                        link_to_append['value'] = str(related_item)
                         l_links.append(link_to_append)
                         used_image_field_name, item_image = getImageForPrefetched(related_item, return_field_name=True)
                         if item_image:
@@ -1494,7 +1493,7 @@ class MagiCollection(object):
                                 else:
                                     image_to_append['link'] = item_image
                             image_to_append['value'] = item_image
-                            image_to_append['tooltip'] = unicode(related_item)
+                            image_to_append['tooltip'] = str(related_item)
                             l_images.append(image_to_append)
                         else:
                             all_have_images = False
@@ -1511,8 +1510,8 @@ class MagiCollection(object):
                 if url:
                     verbose_name = (
                         u'{total} {items}'.format(total=and_more or 0, items=plural_verbose_name.lower())
-                        if '{total}' not in unicode(plural_verbose_name)
-                        else unicode(plural_verbose_name).format(total=and_more or 0))
+                        if '{total}' not in str(plural_verbose_name)
+                        else str(plural_verbose_name).format(total=and_more or 0))
                     d['and_more'] = {
                         'hide': not and_more,
                         'link': self._get_more_url(url, filter_field_name, item, to_preset=to_preset),
@@ -1537,8 +1536,8 @@ class MagiCollection(object):
                     continue
                 value = (
                     u'{total} {items}'.format(total=total, items=plural_verbose_name.lower())
-                    if '{total}' not in unicode(plural_verbose_name)
-                    else unicode(plural_verbose_name).format(total=total))
+                    if '{total}' not in str(plural_verbose_name)
+                    else str(plural_verbose_name).format(total=total))
                 if total:
                     icon = icons.get(field_name, icon)
                     if callable(icon):
@@ -1549,7 +1548,7 @@ class MagiCollection(object):
                     if image:
                         image = staticImageURL(image)
                     (many_fields_galleries if show_last else many_fields).append((field_name, {
-                        'verbose_name': unicode(verbose_name).replace('{total}', ''),
+                        'verbose_name': str(verbose_name).replace('{total}', ''),
                         'type': 'text_with_link' if url else 'text',
                         'value': value,
                         'ajax_link': (
@@ -1672,11 +1671,11 @@ class MagiCollection(object):
                 link = getattr(cache, 'item_url')
                 if link:
                     d['type'] = 'text_with_link'
-                    d['value'] = getattr(cache, 'unicode', unicode(cache))
+                    d['value'] = getattr(cache, 'unicode', str(cache))
                     d['link'] = link
                     if allow_ajax:
                         d['ajax_link'] = getattr(cache, 'ajax_item_url')
-                    d['link_text'] = unicode(_(u'Open {thing}')).format(thing=d['verbose_name'].lower())
+                    d['link_text'] = str(_(u'Open {thing}')).format(thing=d['verbose_name'].lower())
                     d['image_for_link'] = getImageForPrefetched(cache)
                     d['icon'] = getattr(cache, 'flaticon', d['icon'])
                 else:
@@ -1796,7 +1795,7 @@ class MagiCollection(object):
                     sorted_fields[field_name] = {
                         'verbose_name': '',
                         'type': 'text',
-                        'value': unicode(item) if field_name == 'unicode' else '',
+                        'value': str(item) if field_name == 'unicode' else '',
                     }
             for field_name in (only_fields if only_fields else dict_fields.keys()):
                 for prefix in ['i_', 'c_', 'm_', 'j_']:
@@ -1807,7 +1806,7 @@ class MagiCollection(object):
                     sorted_fields[field_name] = dict_fields[field_name] if field_name in dict_fields else {
                         'verbose_name': '',
                         'type': 'text',
-                        'value': unicode(item) if field_name == 'unicode' else '',
+                        'value': str(item) if field_name == 'unicode' else '',
                     }
             if order_settings:
                 sorted_fields = newOrder(sorted_fields, **order_settings)
@@ -1890,7 +1889,7 @@ class MagiCollection(object):
                     variables=u'&'.join([
                         u'{}_{}={}'.format(
                             collectible_collection.item_field_name, variable,
-                            unicode(item) if variable == 'unicode' else getattr(item, variable),
+                            str(item) if variable == 'unicode' else getattr(item, variable),
                         ) for variable in collectible_collection.add_view.add_to_collection_variables
                         if hasattr(item, variable) or variable == 'unicode']),
                 ))
@@ -1911,7 +1910,7 @@ class MagiCollection(object):
                 else collectible_collection.add_view.view_icon
             )
             buttons[name]['image'] = collectible_collection.image
-            buttons[name]['ajax_title'] = u'{}: {}'.format(collectible_collection.add_sentence, unicode(item))
+            buttons[name]['ajax_title'] = u'{}: {}'.format(collectible_collection.add_sentence, str(item))
             if collectible_collection.add_view.unique_per_owner:
                 extra_attributes['unique-per-owner'] = 'true'
             if quick_add_to_collection:
@@ -1930,8 +1929,8 @@ class MagiCollection(object):
                         extra_attributes['quick-add-to-fk-as-owner'] = collectible_collection.queryset.model.fk_as_owner or 'owner'
             if show_total and collectible_collection.add_view.unique_per_owner and not quick_add_to_collection:
                 if collectible_collection.queryset.model.fk_as_owner == 'account' and buttons[name]['badge'] >= len(getAccountIdsFromSession(request)):
-                    edit_sentence = unicode(_('Edit your {thing}')).format(
-                        thing=unicode(collectible_collection.title
+                    edit_sentence = str(_('Edit your {thing}')).format(
+                        thing=str(collectible_collection.title
                                       if len(getAccountIdsFromSession(request)) == 1
                                       else collectible_collection.plural_title).lower())
                     if buttons[name]['badge'] > 0:
@@ -1940,7 +1939,7 @@ class MagiCollection(object):
                     else:
                         extra_attributes['alt-message'] = edit_sentence
             if show_total and collectible_collection.add_view.unique_per_owner and quick_add_to_collection:
-                delete_sentence = unicode(_('Delete {thing}')).format(thing=unicode(collectible_collection.title).lower())
+                delete_sentence = str(_('Delete {thing}')).format(thing=str(collectible_collection.title).lower())
                 if buttons[name]['badge'] > 0:
                     extra_attributes['alt-message'] = buttons[name]['title']
                     buttons[name]['title'] = delete_sentence
@@ -2052,7 +2051,7 @@ class MagiCollection(object):
                 # Show 1 button per nth
                 else:
                     for nth in range(1, total_favoritable + 1):
-                        if request.GET.get('nth', None) and request.GET['nth'] != unicode(nth):
+                        if request.GET.get('nth', None) and request.GET['nth'] != str(nth):
                             continue
                         button_name = u'set_favorite_character-{}'.format(nth)
                         set_base_button(button_name)
@@ -2126,7 +2125,7 @@ class MagiCollection(object):
                                 buttons['translate']['ajax_url'], parameters)
                         break
 
-            buttons['translate']['title'] = unicode(_('Edit {thing}')).format(thing=unicode(_('Translations')).lower())
+            buttons['translate']['title'] = str(_('Edit {thing}')).format(thing=str(_('Translations')).lower())
             buttons['translate']['icon'] = 'translate'
             buttons['translate']['url'] = u'{}{}translate'.format(buttons['translate']['url'], '&' if '?' in buttons['translate']['url'] else '?')
             if buttons['translate']['ajax_url']:
@@ -2268,7 +2267,7 @@ class MagiCollection(object):
                     buttons['open']['show'] = True
                     break
 
-    def __unicode__(self):
+    def __str__(self):
         return u'MagiCollection {}'.format(self.name)
 
     #######################
@@ -2590,7 +2589,7 @@ class MagiCollection(object):
             Will also automatically add cuteform for merged fields.
             """
             formClass = self.filter_form
-            if str(type(formClass)) == '<type \'instancemethod\'>':
+            if inspect.ismethod(formClass):
                 formClass = formClass(request=None, context={})
             if formClass:
                 form = formClass(request=None, collection=self.collection)
@@ -2610,7 +2609,7 @@ class MagiCollection(object):
                 self.filters_details = {}
 
         def auto_cuteform_for_filter_forms(self):
-            if str(type(self.filter_form)) == '<type \'instancemethod\'>':
+            if inspect.ismethod(self.filter_form):
                 return
             if not getattr(self.filter_form, 'merge_fields', None):
                 return
@@ -2880,7 +2879,7 @@ class MagiCollection(object):
             return title_prefixes, h1
 
         def get_page_title(self, item=None):
-            return unicode(item) if item else self.collection.title
+            return str(item) if item else self.collection.title
 
         #######################
         # Tools - not meant to be overridden
@@ -2945,7 +2944,7 @@ class MagiCollection(object):
             return self.collection.multipart
 
         def form_class(self, request, context):
-            if str(type(self.collection.form_class)) == '<type \'instancemethod\'>':
+            if inspect.ismethod(self.collection.form_class):
                 return self.collection.form_class(request, context)
             return self.collection.form_class
 
@@ -3081,7 +3080,7 @@ class MagiCollection(object):
             return self.collection.multipart
 
         def form_class(self, request, context):
-            if str(type(self.collection.form_class)) == '<type \'instancemethod\'>':
+            if inspect.ismethod(self.collection.form_class):
                 return self.collection.form_class(request, context)
             return self.collection.form_class
 
@@ -3132,7 +3131,7 @@ class MagiCollection(object):
                 title_prefixes.append(parent_prefix)
 
             title_prefixes.append({
-                'title': unicode(item),
+                'title': str(item),
                 'url': item.item_url if self.collection.item_view.enabled else None,
             })
 
@@ -3154,9 +3153,9 @@ class MagiCollection(object):
 
         def get_page_title(self, item=None, type=None, is_translate=False):
             if item and is_translate:
-                return u'{}: {}'.format(_('Translations'), unicode(item))
+                return u'{}: {}'.format(_('Translations'), str(item))
             elif item:
-                return u'{}: {}'.format(item.edit_sentence, unicode(item))
+                return u'{}: {}'.format(item.edit_sentence, str(item))
             return self.collection.edit_sentence
 
         #######################
@@ -3773,7 +3772,7 @@ class UserCollection(MagiCollection):
                         'title': _('Private messages'),
                         'has_permissions': request.user.hasPermissionToMessage(user),
                     }),
-                ] + buttons.items())
+                ] + list(buttons.items()))
 
             # Block button
             if request.user.is_authenticated() and user.id != request.user.id:
@@ -3980,7 +3979,7 @@ class UserCollection(MagiCollection):
                     # Tabs
                     account.tabs = account_collection.get_profile_account_tabs(request, context, account)
                     account.tabs_size = 100 / len(account.tabs) if account.tabs else 100
-                    account.opened_tab = account.tabs.keys()[0] if account.tabs else None
+                    account.opened_tab = list(account.tabs.keys())[0] if account.tabs else None
                     open_tab_key = u'account{}'.format(account.id)
                     if account.default_tab and account.default_tab in account.tabs:
                         account.opened_tab = account.default_tab
@@ -4059,7 +4058,7 @@ class UserCollection(MagiCollection):
                 context['profile_tabs']['account']['icon'] = account_collection.icon
 
             # Set opened tab
-            context['opened_tab'] = context['profile_tabs'].keys()[0] if context['profile_tabs'] else None
+            context['opened_tab'] = list(context['profile_tabs'].keys())[0] if context['profile_tabs'] else None
             if user.preferences.default_tab and user.preferences.default_tab in context['profile_tabs']:
                 context['opened_tab'] = user.preferences.default_tab
             if 'open' in request.GET and request.GET['open'] in context['profile_tabs']:
@@ -4071,7 +4070,7 @@ class UserCollection(MagiCollection):
                     return collection_name in [context['opened_tab'], user.preferences.default_tab]
                 for collection_name in (
                         context['collections_in_profile_tabs']
-                        + context['collectible_collections'].get('owner', {}).keys()):
+                        + list(context['collectible_collections'].get('owner', {}).keys())):
                     if (collection_name in context['profile_tabs']
                         and not must_stay(collection_name) and not tabs_with_content.get(collection_name, False)):
                         del(context['profile_tabs'][collection_name])
@@ -4216,7 +4215,9 @@ class UserPreferencesCollection(MagiCollection):
             'mark_email_addresses_invalid',
         ]
         form_class = forms.StaffEditUserPreferences
-        fields_preselected = [ 'owner' ]
+        # UserPreferences.owner is a Python property aliasing the real `user` field
+        # (OneToOneField); select_related() needs the actual field name.
+        fields_preselected = [ 'user' ]
         ajax_callback = 'updateStaffEditUserPreferencesForm'
 
         def check_owner_permissions(self, request, context, item):
@@ -4226,12 +4227,13 @@ class UserPreferencesCollection(MagiCollection):
 
         def after_save(self, request, instance, type=None):
             instance = super(UserPreferencesCollection.EditView, self).after_save(request, instance, type=type)
-            models.onUserEdited(instance)
+            # onUserEdited/onPreferencesEdited take the User, not the UserPreferences instance
+            models.onUserEdited(instance.owner)
             if ON_USER_EDITED:
-                ON_USER_EDITED(instance)
-            models.onPreferencesEdited(instance)
+                ON_USER_EDITED(instance.owner)
+            models.onPreferencesEdited(instance.owner)
             if ON_PREFERENCES_EDITED:
-                ON_PREFERENCES_EDITED(instance)
+                ON_PREFERENCES_EDITED(instance.owner)
             return instance
 
         def redirect_after_edit(self, request, item, ajax):
@@ -4912,7 +4914,7 @@ class BadgeCollection(MagiCollection):
                 if (context['request'].LANGUAGE_CODE not in LANGUAGES_CANT_SPEAK_ENGLISH
                     and 'help' in context['all_enabled']
                     and request.user.is_authenticated()
-                    and unicode(request.user.id) == of_user):
+                    and str(request.user.id) == of_user):
                     buttons['get_badges'] = {
                         'show': True, 'has_permissions': True,
                         'url': '/help/Badges',
@@ -4946,7 +4948,7 @@ class BadgeCollection(MagiCollection):
             _unused_title_prefixes, h1 = super(BadgeCollection.ItemView, self).get_h1_title(request, context, item)
             title_prefixes = [
                 {
-                    'title': unicode(item.owner),
+                    'title': str(item.owner),
                     'url': item.owner.item_url,
                 },
                 {
@@ -4970,7 +4972,7 @@ class BadgeCollection(MagiCollection):
         def extra_context(self, context):
             form_name = u'add_{}'.format(self.collection.name)
             if hasattr(context['forms'][form_name], 'badge'):
-                context['alert_message'] = string_concat(_('Badge'), ': ', unicode(context['forms'][form_name].badge))
+                context['alert_message'] = string_concat(_('Badge'), ': ', str(context['forms'][form_name].badge))
                 context['alert_type'] = 'info'
                 context['alert_flaticon'] = 'about'
                 context['alert_button_string'] = context['forms'][form_name].badge.open_sentence
@@ -5219,8 +5221,8 @@ PRIZE_CUTEFORM = {
     'i_character': {
         'to_cuteform': lambda k, v: getCharacterImageFromPk(k),
         'extra_settings': {
-	    'modal': 'true',
-	    'modal-text': 'true',
+            'modal': 'true',
+            'modal-text': 'true',
         },
     },
     'has_giveaway': {

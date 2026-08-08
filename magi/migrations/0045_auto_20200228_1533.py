@@ -45,25 +45,25 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='prize',
             name='image2',
-            field=models.ImageField(upload_to=magi.utils.uploadItem(b'prize'), null=True, verbose_name=b'2nd image', blank=True),
+            field=models.ImageField(upload_to=magi.utils.uploadItem('prize'), null=True, verbose_name='2nd image', blank=True),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='prize',
             name='image3',
-            field=models.ImageField(upload_to=magi.utils.uploadItem(b'prize'), null=True, verbose_name=b'3rd image', blank=True),
+            field=models.ImageField(upload_to=magi.utils.uploadItem('prize'), null=True, verbose_name='3rd image', blank=True),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='prize',
             name='image4',
-            field=models.ImageField(upload_to=magi.utils.uploadItem(b'prize'), null=True, verbose_name=b'4th image', blank=True),
+            field=models.ImageField(upload_to=magi.utils.uploadItem('prize'), null=True, verbose_name='4th image', blank=True),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='staffdetails',
             name='image',
-            field=models.ImageField(help_text=b"Photograph of yourself. Real life photos look friendlier when we introduce the team. If you really don't want to show your face, you can use an avatar, but we prefer photos :)", upload_to=magi.utils.uploadToRandom(b'staff_photos'), null=True, verbose_name='Image', blank=True),
+            field=models.ImageField(help_text="Photograph of yourself. Real life photos look friendlier when we introduce the team. If you really don't want to show your face, you can use an avatar, but we prefer photos :)", upload_to=magi.utils.uploadToRandom('staff_photos'), null=True, verbose_name='Image', blank=True),
             preserve_default=True,
         ),
     ]

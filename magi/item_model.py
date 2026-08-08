@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-import json, datetime, hashlib, urllib
-import six
+import json, datetime, hashlib
+import urllib.parse
 from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.db import models
@@ -67,7 +66,7 @@ NON_LATIN_LANGUAGES = [
 def get_file_url_from_path(filePath):
     if not filePath:
         return None
-    fileURL = unicode(filePath)
+    fileURL = str(filePath)
     if '//' in fileURL:
         return fileURL
     if fileURL.startswith(django_settings.SITE + '/'):
@@ -168,8 +167,8 @@ def get_owner_unicode(instance):
         fk_as_owner = getattr(instance, u'cached_{}'.format(instance.fk_as_owner))
         if not fk_as_owner:
             fk_as_owner = getattr(instance, instance.fk_as_owner)
-        return fk_as_owner.unicode if hasattr(fk_as_owner, 'unicode') else unicode(fk_as_owner)
-    return instance.owner.unicode if hasattr(instance.owner, 'unicode') else unicode(instance.owner)
+        return fk_as_owner.unicode if hasattr(fk_as_owner, 'unicode') else str(fk_as_owner)
+    return instance.owner.unicode if hasattr(instance.owner, 'unicode') else str(instance.owner)
 
 def get_real_owner(instance):
     """
@@ -245,7 +244,7 @@ class BaseMagiModel(models.Model):
     owner_unicode = property(get_owner_unicode)
     real_owner = property(get_real_owner)
     has_item_view_permissions = has_item_view_permissions
-    unicode = property(lambda _s: unicode(_s))
+    unicode = property(lambda _s: str(_s))
     unicodes = property(unicodes)
 
     @classmethod
@@ -300,7 +299,7 @@ class BaseMagiModel(models.Model):
             return next(
                 (c[0] if isinstance(c, tuple) else c)
                 for index, c in self.get_choices(field_name)
-                if unicode(index) == unicode(i)
+                if str(index) == str(i)
             )
         except StopIteration:
             if i is None or i == '':
@@ -318,7 +317,7 @@ class BaseMagiModel(models.Model):
             return next(
                 (c[1] if isinstance(c, tuple) else c)
                 for index, c in self.get_choices(field_name)
-                if unicode(index) == unicode(i)
+                if str(index) == str(i)
             )
         except StopIteration:
             if i is None:
@@ -406,7 +405,7 @@ class BaseMagiModel(models.Model):
         d = json.loads(value)
         if d is None: return None
         if isinstance(d, list):
-            d = map(lambda _d: self.cached_json_extra(field_name, _d), d)
+            d = list(map(lambda _d: self.cached_json_extra(field_name, _d), d))
         elif isinstance(d, dict):
             d = self.cached_json_extra(field_name, d)
         else:
@@ -576,7 +575,7 @@ class BaseMagiModel(models.Model):
                                 if not flag:
                                     print('  UPDATE M2M CACHE REV', rel_field_name)
                                     flag = True
-                                print('    ', failSafe(lambda: unicode(rel_item), default=rel_item.id))
+                                print('    ', failSafe(lambda: str(rel_item), default=rel_item.id))
                         flag = False
                         for previous_rel_item in previous_related_caches.get(rel_field_name, []):
                             if previous_rel_item not in rel_items:
@@ -585,20 +584,20 @@ class BaseMagiModel(models.Model):
                                     if not flag:
                                         print('  UPDATE M2M CACHE REV OF REMOVED', rel_field_name)
                                         flag = True
-                                    print('    ', failSafe(lambda: unicode(previous_rel_item), default=previous_rel_item.id))
+                                    print('    ', failSafe(lambda: str(previous_rel_item), default=previous_rel_item.id))
                     else:
                         rel_item = getattr(self, rel_field_name)
                         if rel_item:
                             changed = rel_item.update_cache_if_changed(rel_cache_name)
                             if django_settings.DEBUG and changed:
                                 print('  UPDATE CACHE REV', rel_field_name)
-                                print('    ', failSafe(lambda: unicode(rel_item), default=rel_item.id))
+                                print('    ', failSafe(lambda: str(rel_item), default=rel_item.id))
                         previous_rel_item = previous_related_caches.get(rel_field_name, None)
                         if previous_rel_item and previous_rel_item != rel_item:
                             changed = previous_rel_item.update_cache_if_changed(rel_cache_name)
                             if django_settings.DEBUG and changed:
                                 print('  UPDATE CACHE REV OF REMOVED', rel_field_name)
-                                print('    ', failSafe(lambda: unicode(previous_rel_item), default=previous_rel_item.id))
+                                print('    ', failSafe(lambda: str(previous_rel_item), default=previous_rel_item.id))
 
                 else:
                     rel_queryset = getattr(self, rel_field_name).all()
@@ -613,7 +612,7 @@ class BaseMagiModel(models.Model):
                             if not flag:
                                 print('  UPDATE CACHE REV', rel_field_name)
                                 flag = True
-                            print('    ', failSafe(lambda: unicode(rel_item), default=rel_item.id))
+                            print('    ', failSafe(lambda: str(rel_item), default=rel_item.id))
 
     @classmethod
     def update_all_related_caches_of_model(self, update_reverse_related_caches=True):
@@ -628,7 +627,7 @@ class BaseMagiModel(models.Model):
             else:
                 queryset = queryset.select_related(cache_name)
         for item in queryset:
-            print(self.__name__, failSafe(lambda: unicode(item), default=item.id))
+            print(self.__name__, failSafe(lambda: str(item), default=item.id))
             item.update_all_related_caches(
                 reload_m2m=False, update_reverse_related_caches=update_reverse_related_caches)
 
@@ -692,7 +691,7 @@ class BaseMagiModel(models.Model):
         return (
             getattr(self, 'display_name_item', None)
             or getattr(self, 'display_name', None)
-            or unicode(self)
+            or str(self)
         )
 
     @property
@@ -700,7 +699,7 @@ class BaseMagiModel(models.Model):
         return (
             getattr(self, 'display_name_in_list', None)
             or getattr(self, 'display_name', None)
-            or unicode(self)
+            or str(self)
         )
 
     @property
@@ -1031,11 +1030,11 @@ class BaseMagiModel(models.Model):
                 return self._attr_error(original_name)
             # If it's a string, just turn it into a path
             value = getattr(self, field_name)
-            if (isinstance(value, six.string_types)
+            if (isinstance(value, str)
                 or isinstance(value, ImageFieldFile)):
-                return (get_http_file_url_from_path(unicode(value))
+                return (get_http_file_url_from_path(str(value))
                         if name.startswith('http_')
-                        else get_file_url_from_path(unicode(value)))
+                        else get_file_url_from_path(str(value)))
             return self._attr_error(original_name)
 
         # WITHOUT PREFIX
@@ -1072,9 +1071,9 @@ class BaseMagiModel(models.Model):
 
         return self._attr_error(original_name)
 
-    def __unicode__(self):
+    def __str__(self):
         try:
-            return unicode(self.t_name)
+            return str(self.t_name)
         except AttributeError:
             pass
         return notTranslatedWarning(self.__class__.__name__)
@@ -1105,7 +1104,7 @@ def get_collection(cls):
 def get_item_url(instance):
     return (
         getattr(instance, 'get_item_url', lambda: None)()
-        or u'/{}/{}/{}/'.format(instance.collection_name, instance.pk, tourldash(unicode(instance)))
+        or u'/{}/{}/{}/'.format(instance.collection_name, instance.pk, tourldash(str(instance)))
     )
 
 def get_ajax_item_url(instance):
@@ -1120,7 +1119,7 @@ def get_full_item_url(instance):
         if '//' not in display_url[:8]:
             return u'{}{}'.format(django_settings.SITE_URL, display_url)
         return display_url
-    return u'{}{}/{}/{}/'.format(django_settings.SITE_URL, instance.collection_name, instance.pk, tourldash(unicode(instance)))
+    return u'{}{}/{}/{}/'.format(django_settings.SITE_URL, instance.collection_name, instance.pk, tourldash(str(instance)))
 
 def get_http_item_url(instance):
     url = get_full_item_url(instance)
@@ -1147,16 +1146,16 @@ def get_ajax_edit_url(instance):
 # Get sentences
 
 def get_open_sentence(instance):
-    return _('Open {thing}').format(thing=unicode(instance.collection_title).lower())
+    return _('Open {thing}').format(thing=str(instance.collection_title).lower())
 
 def get_edit_sentence(instance):
-    return _('Edit {thing}').format(thing=unicode(instance.collection_title).lower())
+    return _('Edit {thing}').format(thing=str(instance.collection_title).lower())
 
 def get_delete_sentence(instance):
-    return _('Delete {thing}').format(thing=unicode(instance.collection_title).lower())
+    return _('Delete {thing}').format(thing=str(instance.collection_title).lower())
 
 def get_report_sentence(instance):
-    return _('Report {thing}').format(thing=unicode(instance.collection_title).lower())
+    return _('Report {thing}').format(thing=str(instance.collection_title).lower())
 
 def get_suggest_edit_sentence(instance):
     return _('Suggest edit')
@@ -1229,7 +1228,7 @@ def addMagiModelProperties(modelClass, collection_name, only_properties=False):
     if not only_properties:
         modelClass.request = None
     modelClass.unicodes = property(unicodes)
-    modelClass.unicode = property(lambda _s: unicode(_s))
+    modelClass.unicode = property(lambda _s: str(_s))
 
 ############################################################
 # CachedItem: Set all properties so it behaves like a MagiModel
@@ -1338,7 +1337,7 @@ class CachedItem(AttrDict):
                 name, getattr(self, 'c_{name}'.format(name=name)), translated=False)
         return self._attr_error(original_name)
 
-    def __unicode__(self):
+    def __str__(self):
         language = get_language()
         id = self.__dict__.get('id', None)
         return (
@@ -1374,8 +1373,8 @@ def avatar(user, size=200):
             else 'https:' + django_settings.SITE_URL, user.preferences.twitter,
         )
     return 'https://www.gravatar.com/avatar/{}?{}'.format(
-        hashlib.md5(user.email.lower()).hexdigest(),
-        urllib.urlencode({'d': default, 's': str(size)}),
+        hashlib.md5(user.email.lower().encode('utf-8')).hexdigest(),
+        urllib.parse.urlencode({'d': default, 's': str(size)}),
     )
 
 addMagiModelProperties(User, 'user')
@@ -1426,16 +1425,27 @@ class MagiModel(BaseMagiModel):
     suggest_edit_sentence = property(get_suggest_edit_sentence)
     allow_multiple_per_owner = classmethod(get_allow_multiple_per_owner)
 
-    def __unicode__(self):
+    def __str__(self):
         try:
-            return unicode(self.t_name)
+            return str(self.t_name)
         except AttributeError:
             pass
         try:
-            return unicode(self.collection_title)
+            return str(self.collection_title)
         except AttributeError:
             pass
-        return unicode(self.collection_name)
+        return str(self.collection_name)
+
+    def __str__(self):
+        try:
+            return str(self.t_name)
+        except AttributeError:
+            pass
+        try:
+            return str(self.collection_title)
+        except AttributeError:
+            pass
+        return str(self.collection_name)
 
     class Meta:
         abstract = True
@@ -1448,5 +1458,5 @@ class UserImage(BaseMagiModel):
     _thumbnail_image = models.ImageField(null=True, upload_to=uploadThumb('user_images'), max_length=255)
     name = models.CharField(_('Title'), max_length=100, null=True)
 
-    def __unicode__(self):
-        return unicode(_('Image'))
+    def __str__(self):
+        return str(_('Image'))

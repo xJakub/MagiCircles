@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import math, datetime, random, string, simplejson
-import six
 from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse, Http404
@@ -560,7 +559,7 @@ def about(request, context):
                 staff_member.stats[group] = []
                 if stats:
                     for stat in stats:
-                        if isinstance(stat['model'], six.string_types):
+                        if isinstance(stat['model'], str):
                             model = getattr(models, stat['model'])
                         else:
                             model = stat['model']
@@ -578,7 +577,7 @@ def about(request, context):
                             staff_member.stats[group].append(
                                 stat['template'](total)
                                 if callable(stat['template'])
-                                else mark_safe(unicode(stat['template']).format(total=u'<strong>{}</strong>'.format(total)))
+                                else mark_safe(str(stat['template']).format(total=u'<strong>{}</strong>'.format(total)))
                             )
                 settings = staff_member.preferences.t_settings_per_groups.get(group, None)
                 if settings:
@@ -663,7 +662,7 @@ def settings(request, context):
     context['alert_reputation_title'] = _('You are not allowed to send private messages.')
     context['alert_reputation_message'] = _('Take some time to play around {site_name} to unlock this feature!').format(site_name=context['t_site_name'])
     context['blocked_users_sentence'] = _('Block {username}').format(username=_('Users').lower())
-    context['add_custom_link_sentence'] = _(u'Add {thing}').format(thing=unicode(_('Custom link')).lower())
+    context['add_custom_link_sentence'] = _(u'Add {thing}').format(thing=str(_('Custom link')).lower())
     context['consider_donating_sentence'] = _('If you like {site_name}, please consider donating').format(
         site_name=getSiteName())
 
@@ -875,10 +874,10 @@ def settings(request, context):
             thing = markSafeFormat(
                 u'<a href="{url}">{title}</a>',
                 url=report.reported_thing_item_url,
-                title=unicode(report).lower(),
+                title=str(report).lower(),
             )
         else:
-            thing = unicode(report).lower()
+            thing = str(report).lower()
         if report.is_suggestededit:
             if report.status == 'Deleted':
                 continue
@@ -920,7 +919,7 @@ def settings(request, context):
             'title': _('Background'),
             'extra_settings': {
                 'modal': 'true',
-	        'modal-text': jsv(SHOW_BACKGROUND_NAME_ON_SELECTION),
+                'modal-text': jsv(SHOW_BACKGROUND_NAME_ON_SELECTION),
             },
         },
     }
@@ -1265,7 +1264,7 @@ def moderatereport(request, report, action):
         if report.owner:
             translation_activate(report.owner.preferences.language if report.owner.preferences.language else 'en')
             if report.is_suggestededit:
-                context['sentence'] = unicode(_('The edit you suggested has been reviewed by a database maintainer and the {thing} has been edited accordingly. Thank you so much for your help!')).format(thing=_(report.reported_thing_title))
+                context['sentence'] = str(_('The edit you suggested has been reviewed by a database maintainer and the {thing} has been edited accordingly. Thank you so much for your help!')).format(thing=_(report.reported_thing_title))
                 subject = _(u'Thank you for suggesting this edit!')
             else:
                 context['sentence'] = _(u'This {thing} you reported has been reviewed by a moderator and {verb}. Thank you so much for your help!').format(thing=_(report.reported_thing_title), verb=_(u'edited'))
@@ -1274,7 +1273,7 @@ def moderatereport(request, report, action):
             context['show_donation'] = True
             context['subject'] = u'{} {}'.format(
                 SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                unicode(subject.format(thing=_(report.reported_thing_title))),
+                str(subject.format(thing=_(report.reported_thing_title))),
             )
             send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         # Notify owner
@@ -1288,7 +1287,7 @@ def moderatereport(request, report, action):
             context['show_donation'] = False
             context['subject'] = u'{} {}'.format(
                 SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                unicode(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'edited'))),
+                str(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'edited'))),
             )
             send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         report.save()
@@ -1313,7 +1312,7 @@ def moderatereport(request, report, action):
                 context['show_donation'] = True
                 context['subject'] = u'{} {}'.format(
                     SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                    unicode(_(u'Thank you for reporting this {thing}').format(thing=_(report.reported_thing_title))),
+                    str(_(u'Thank you for reporting this {thing}').format(thing=_(report.reported_thing_title))),
                 )
                 send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         # Notify owner
@@ -1324,7 +1323,7 @@ def moderatereport(request, report, action):
             context['show_donation'] = False
             context['subject'] = u'{} {}'.format(
                 SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                unicode(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'deleted'))),
+                str(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'deleted'))),
             )
             send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         moderated_reports = [a_report.pk for a_report in all_reports]
@@ -1418,7 +1417,7 @@ def likeactivity(request, context, pk):
         activity.likes.add(request.user)
         activity.update_cache('total_likes')
         activity.save()
-        pushNotification(activity.owner, 'like-archive' if activity.archived_by_owner else 'like', [unicode(request.user), unicode(activity)], url_values=[str(activity.id), tourldash(unicode(activity))], image=activity.image)
+        pushNotification(activity.owner, 'like-archive' if activity.archived_by_owner else 'like', [str(request.user), str(activity)], url_values=[str(activity.id), tourldash(str(activity))], image=activity.image)
         return {
             'total_likes': activity.total_likes + 2,
             'result': 'liked',
@@ -1527,7 +1526,7 @@ def markactivitystaffpick(request, context, pk):
         'result': {
             'staff-picks': True,
             'tags': {
-                k: unicode(v)
+                k: str(v)
                 for k, v in activity.t_tags.items()
             },
         },
@@ -1545,7 +1544,7 @@ def removeactivitystaffpick(request, context, pk):
         'result': {
             'staff-picks': False,
             'tags': {
-                k: unicode(v)
+                k: str(v)
                 for k, v in activity.t_tags.items()
             },
         },
@@ -1566,8 +1565,8 @@ def follow(request, context, username):
         pushNotification(
             user,
             'follow',
-            [unicode(request.user)],
-            url_values=[str(request.user.id), unicode(request.user)],
+            [str(request.user)],
+            url_values=[str(request.user.id), str(request.user)],
             image=request.user.image_url,
         )
         return {
@@ -1756,7 +1755,7 @@ def translations_check(request, context):
             old_lang = get_language()
             for lang, verbose in LANGUAGES_DICT.items():
                 translation_activate(lang)
-                terms.append((lang, verbose, unicode(_(form.cleaned_data['term']))))
+                terms.append((lang, verbose, str(_(form.cleaned_data['term']))))
                 translation_activate(old_lang)
     else:
         form = TranslationCheckForm()
@@ -1789,7 +1788,7 @@ def translations_check(request, context):
             translation_activate(language)
             # Check template variables with {}
             for term in nameless_template_strings:
-                translation = unicode(_(term))
+                translation = str(_(term))
                 if term.count('{}') != translation.count('{}'):
                     translation_errors.append([
                         language,
@@ -1798,7 +1797,7 @@ def translations_check(request, context):
                     ])
             # Check old style templates
             for term, variables in old_style_template_strings.items():
-                translation = unicode(_(term))
+                translation = str(_(term))
                 language_variables = sorted(oldStyleTemplateVariables(translation))
                 if language_variables != variables:
                     translation_errors.append([
@@ -1808,7 +1807,7 @@ def translations_check(request, context):
                     ])
             # Check template variables with {name}
             for term, variables in template_strings.items():
-                translation = unicode(_(term))
+                translation = str(_(term))
                 try:
                     language_variables = sorted(templateVariables(translation))
                 except ValueError:
@@ -1995,7 +1994,7 @@ def adventcalendar(request, context, day=None):
     today = datetime.date.today()
     days_opened = request.user.preferences.extra.get('advent_calendar{}'.format(today.year), '').split(',')
     context['calendar'] = OrderedDict([
-        (unicode(i_day), unicode(i_day) in days_opened)
+        (str(i_day), str(i_day) in days_opened)
         for i_day in range(1, 25)
     ])
     if day and day in context['calendar']:
@@ -2055,7 +2054,7 @@ def adventcalendar(request, context, day=None):
             context['image'] = None
 
 def endaprilfool(request, context):
-    if getEventStatus((03, 31), (04, 03)) != 'current':
+    if getEventStatus((3, 31), (4, 3)) != 'current':
         raise PermissionDenied()
     badge_image = getattr(django_settings, 'SEASONAL_SETTINGS', {}).get('aprilfools', {}).get('extra', {}).get('badge_image', None)
     if not badge_image:

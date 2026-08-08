@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activity',
             name='_cache_owner_preferences_status',
-            field=models.CharField(max_length=12, null=True, choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Skilled Producer'), (b'LOVER', 'Expert Producer'), (b'AMBASSADOR', 'Veteran Producer'), (b'PRODUCER', 'Ultimate Producer'), (b'DEVOTEE', 'Idol Master')]),
+            field=models.CharField(max_length=12, null=True, choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Skilled Producer'), ('LOVER', 'Expert Producer'), ('AMBASSADOR', 'Veteran Producer'), ('PRODUCER', 'Ultimate Producer'), ('DEVOTEE', 'Idol Master')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userpreferences',
             name='status',
-            field=models.CharField(max_length=12, null=True, choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Skilled Producer'), (b'LOVER', 'Expert Producer'), (b'AMBASSADOR', 'Veteran Producer'), (b'PRODUCER', 'Ultimate Producer'), (b'DEVOTEE', 'Idol Master')]),
+            field=models.CharField(max_length=12, null=True, choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Skilled Producer'), ('LOVER', 'Expert Producer'), ('AMBASSADOR', 'Veteran Producer'), ('PRODUCER', 'Ultimate Producer'), ('DEVOTEE', 'Idol Master')]),
             preserve_default=True,
         ),
     ]

@@ -156,11 +156,11 @@ MIN_HEIGHT = 300
 
 try:
     from generated_settings import *
-except ImportError, e:
+except ImportError as e:
     pass
 try:
     from local_settings import *
-except ImportError, e:
+except ImportError as e:
     pass
 
 INSTALLED_APPS = list(INSTALLED_APPS)
