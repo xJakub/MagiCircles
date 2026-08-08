@@ -6,10 +6,10 @@ from django.utils.text import format_lazy
 from django.utils.translation import ugettext_lazy as _, get_language
 from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, FieldDoesNotExist
 from django.middleware import csrf
 from django.http import Http404
-from django.db.models import Q, Prefetch, FieldDoesNotExist
+from django.db.models import Q, Prefetch
 from django.db.models.fields.related import ForeignObjectRel
 from django.shortcuts import get_object_or_404
 from django.conf import settings as django_settings

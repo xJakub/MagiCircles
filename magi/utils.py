@@ -20,20 +20,21 @@ from django.core.validators import RegexValidator
 from django.http import Http404
 from django.utils.http import urlquote
 from django.utils.deconstruct import deconstructible
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.functional import lazy
 from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
 from django.utils.formats import dateformat, date_format
 from django.utils.functional import Promise
-from django.utils.safestring import mark_safe, SafeText, SafeBytes
+from django.utils.safestring import mark_safe, SafeString
 from django.utils.html import escape
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.template import Context
 from django.template.loader import get_template
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db import connection
-from django.db.models.fields import BLANK_CHOICE_DASH, FieldDoesNotExist
+from django.db.models.fields import BLANK_CHOICE_DASH
 from django.db.models.fields.related import ForeignObjectRel
 from django.db.models.query import QuerySet
 from django.db.models import Q, Prefetch
@@ -2309,7 +2310,7 @@ def getAllTranslationsOfModelField(item, field_name='name', unique=False):
 class LazyEncoder(DjangoJSONEncoder):
     def default(self, obj):
         if isinstance(obj, Promise):
-            return force_text(obj)
+            return force_str(obj)
         if isinstance(obj, (collections.abc.KeysView, collections.abc.ValuesView)):
             return list(obj)
         return super(LazyEncoder, self).default(obj)
@@ -5067,13 +5068,10 @@ markSafe = mark_safe
 markUnsafe = escape
 
 def isMarkedSafe(string):
-    return isinstance(string, SafeText)
+    return isinstance(string, SafeString)
 
 def _markSafeFormatEscapeOrNot(string):
-    return str(string if (
-        isinstance(string, SafeText)
-        or isinstance(string, SafeBytes)
-    ) else escape(string))
+    return str(string if isinstance(string, SafeString) else escape(string))
 
 def markSafeFormat(string, *args, **kwargs):
     """The first string doesn't need to be marked safe, it's assumed safe"""

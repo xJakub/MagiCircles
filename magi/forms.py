@@ -6,10 +6,11 @@ from multiupload.fields import MultiFileField
 from snowpenguin.django.recaptcha3.widgets import ReCaptchaHiddenInput as _ReCaptchaHiddenInput
 from snowpenguin.django.recaptcha3.fields import ReCaptchaField as _ReCaptchaField
 from django import forms
+from django.core.exceptions import FieldDoesNotExist
 from django.core.validators import MaxLengthValidator, MaxValueValidator
 from django.http.request import QueryDict
 from django.db import models as django_models
-from django.db.models.fields import BLANK_CHOICE_DASH, FieldDoesNotExist, TextField, CharField, DateTimeField
+from django.db.models.fields import BLANK_CHOICE_DASH, TextField, CharField, DateTimeField
 from django.db.models.fields.files import ImageField
 from django.db.models import Q
 from django.forms.models import model_to_dict, fields_for_model

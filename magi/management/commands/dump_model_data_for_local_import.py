@@ -1,9 +1,10 @@
 import sys # at the end remove
 from django.conf import settings as django_settings
+from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User, Group
 from django.db.models import Prefetch
-from django.db.models.fields import FieldDoesNotExist, related
+from django.db.models.fields import related
 from django.db.models.fields.files import ImageField
 from magi.utils import modelHasField
 from magi import models as magi_models

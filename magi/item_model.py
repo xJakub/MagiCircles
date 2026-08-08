@@ -3,8 +3,8 @@ import json, datetime, hashlib
 import urllib.parse
 from collections import OrderedDict
 from django.contrib.auth.models import User
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
-from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.files import ImageFieldFile
 from django.db.models.fields.related import ForeignObjectRel
 from django.conf import settings as django_settings
