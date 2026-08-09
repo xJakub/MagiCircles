@@ -2,7 +2,7 @@
 import datetime, string
 from collections import OrderedDict
 from django.conf import settings as django_settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from magi.utils import (
     ALERT_TEMPLATE,
     ALERT_BUTTON_TEMPLATE,

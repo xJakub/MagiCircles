@@ -1,6 +1,6 @@
 import operator
 from functools import reduce
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from magi.magicollections import MainItemCollection
 from magi.utils import (
     addParametersToURL,

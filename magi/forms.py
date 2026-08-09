@@ -20,7 +20,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.admin.utils import NestedObjects
 from django.utils import timezone
 from django.utils.text import format_lazy
-from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
+from django.utils.translation import gettext_lazy as _, get_language, activate as translation_activate
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
 from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile

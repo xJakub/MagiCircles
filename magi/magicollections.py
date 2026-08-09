@@ -3,7 +3,7 @@ from __future__ import division
 import string, copy, inspect
 from collections import OrderedDict
 from django.utils.text import format_lazy
-from django.utils.translation import ugettext_lazy as _, get_language
+from django.utils.translation import gettext_lazy as _, get_language
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist, FieldDoesNotExist

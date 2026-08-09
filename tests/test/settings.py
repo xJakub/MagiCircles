@@ -1,6 +1,6 @@
 from django.conf import settings as django_settings
 from django.utils.text import format_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from test import models
 
 SITE_NAME = 'Sample Website'

@@ -8,12 +8,12 @@ from django.conf import settings as django_settings
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import authenticate, login as login_action
 from django.contrib.admin.utils import NestedObjects
-from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
+from django.utils.translation import gettext_lazy as _, get_language, activate as translation_activate
 from django.utils.formats import date_format
 from .django_translated import t
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.utils.http import urlquote
+from urllib.parse import quote as urlquote
 from django.utils import timezone
 from django.db.models import Count, Prefetch, Q
 from magi.middleware.httpredirect import HttpRedirectException

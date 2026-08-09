@@ -1,15 +1,14 @@
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.contrib import admin
-from django.conf.urls import handler500, handler403
 
 handler500 = 'magi.views.handler500'
 handler403 = 'magi.views.handler403'
 
 urlpatterns = [
     # Examples:
-    # url(r'^$', 'sample_project.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+    # re_path(r'^$', 'sample_project.views.home', name='home'),
+    # re_path(r'^blog/', include('blog.urls')),
 
-    url(r'^', include('magi.urls')),
-    url(r'^admin/', admin.site.urls),
+    re_path(r'^', include('magi.urls')),
+    re_path(r'^admin/', admin.site.urls),
 ]

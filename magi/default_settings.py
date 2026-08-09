@@ -3,7 +3,7 @@ from collections import OrderedDict
 from django.conf import settings as django_settings
 from django.utils.functional import lazy
 from django.utils.text import format_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.forms import MultipleChoiceField
 from magi.django_translated import t
 from magi.seasons import DEFAULT_SEASONS

@@ -5,7 +5,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core import validators
 from django.utils.text import format_lazy
-from django.utils.translation import ugettext_lazy as _, get_language
+from django.utils.translation import gettext_lazy as _, get_language
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.formats import date_format

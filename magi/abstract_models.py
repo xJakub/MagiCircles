@@ -2,7 +2,7 @@ import datetime
 from collections import OrderedDict
 from django.contrib.auth.models import User
 from django.utils.text import format_lazy
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.db import models
 from django.db.models.fields.related import ForeignObjectRel
 from django.conf import settings as django_settings
@@ -277,7 +277,7 @@ class MobileGameAccount(BaseAccount):
         RegexValidator(r'^[0-9 ]+$', t['Enter a number.']),
     ])
     show_friend_id = models.BooleanField(_('Should your friend ID be visible to other players?'), default=True)
-    accept_friend_requests = models.NullBooleanField(_('Accept friend requests'), null=True)
+    accept_friend_requests = models.BooleanField(_('Accept friend requests'), null=True)
 
     # How do you play?
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import OrderedDict
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 TWITTER_MAX_CHARACTERS = 280
 TWITTER_LINKS_COUNT_AS_X_CHARACTERS = 23

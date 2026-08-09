@@ -8,7 +8,7 @@ from django.db import models
 from django.db.models.fields.files import ImageFieldFile
 from django.db.models.fields.related import ForeignObjectRel
 from django.conf import settings as django_settings
-from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
+from django.utils.translation import gettext_lazy as _, get_language, activate as translation_activate
 from django.utils import timezone
 from magi.raw import KNOWN_ITEM_PROPERTIES
 from magi.utils import (
@@ -1424,17 +1424,6 @@ class MagiModel(BaseMagiModel):
     report_sentence = property(get_report_sentence)
     suggest_edit_sentence = property(get_suggest_edit_sentence)
     allow_multiple_per_owner = classmethod(get_allow_multiple_per_owner)
-
-    def __str__(self):
-        try:
-            return str(self.t_name)
-        except AttributeError:
-            pass
-        try:
-            return str(self.collection_title)
-        except AttributeError:
-            pass
-        return str(self.collection_name)
 
     def __str__(self):
         try:

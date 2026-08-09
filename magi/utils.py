@@ -18,11 +18,11 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import resolve
 from django.core.validators import RegexValidator
 from django.http import Http404
-from django.utils.http import urlquote
+from urllib.parse import quote as urlquote
 from django.utils.deconstruct import deconstructible
 from django.utils.encoding import force_str
 from django.utils.functional import lazy
-from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
+from django.utils.translation import gettext_lazy as _, get_language, activate as translation_activate
 from django.utils.formats import dateformat, date_format
 from django.utils.functional import Promise
 from django.utils.safestring import mark_safe, SafeString
