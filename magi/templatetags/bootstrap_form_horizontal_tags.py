@@ -1,7 +1,23 @@
 import datetime
+from django import forms
 from django import template
 from django.forms.fields import NullBooleanField, BooleanField, DateTimeField
 register = template.Library()
+
+def _widget_wants_no_form_control_class(field):
+    """
+    Checkboxes, radios, multiple-choice checkboxes, and file inputs shouldn't
+    get Bootstrap's 'form-control' class: it forces a fixed single-line
+    height, which clips/overflows widgets that render as multiple stacked
+    options (e.g. a multi-version checkbox group) into the following field.
+    """
+    widget = field.field.widget
+    return isinstance(widget, (
+        forms.CheckboxInput,
+        forms.CheckboxSelectMultiple,
+        forms.RadioSelect,
+        forms.FileInput,
+    ))
 
 @register.filter
 def is_boolean(field):
@@ -60,9 +76,10 @@ def bootstrap_control_field(field):
     """
     Add 'form-control' class and placeholder='field.label' to the field.
     """
+    existing_classes = [field.field.widget.attrs.get('class', '')]
+    class_names = existing_classes if _widget_wants_no_form_control_class(field) else (
+        ['form-control'] + existing_classes)
     return field.as_widget(attrs={
-        'class': field.css_classes() or u' '.join([
-            'form-control', field.field.widget.attrs.get('class', ''),
-        ]),
+        'class': field.css_classes() or u' '.join(class_names),
         "placeholder": getattr(field.field, 'placeholder', None) or field.label,
     });

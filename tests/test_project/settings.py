@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
+# Import magi early (before INSTALLED_APPS is processed) so its compat
+# shims for abandoned dependencies (magi/__init__.py) are in place before
+# Django imports 'bootstrapform', which comes earlier in INSTALLED_APPS.
+import magi  # noqa: F401
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/

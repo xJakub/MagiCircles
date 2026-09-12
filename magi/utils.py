@@ -2090,16 +2090,16 @@ def addYearToEventWithoutYear(start_date=None, end_date=None, return_have_year=F
     # Transform tuples to dates
     if isinstance(start_date, tuple):
         if len(start_date) == 3:
-            start_date = datetime.datetime(start_date[0], start_date[1], start_date[2], tzinfo=timezone.utc)
+            start_date = datetime.datetime(start_date[0], start_date[1], start_date[2], tzinfo=datetime.timezone.utc)
         else:
             tuples_have_year[0] = False
-            start_date = datetime.datetime(now.year, start_date[0], start_date[1], tzinfo=timezone.utc)
+            start_date = datetime.datetime(now.year, start_date[0], start_date[1], tzinfo=datetime.timezone.utc)
     if isinstance(end_date, tuple):
         if len(end_date) == 3:
-            end_date = datetime.datetime(end_date[0], end_date[1], end_date[2], tzinfo=timezone.utc)
+            end_date = datetime.datetime(end_date[0], end_date[1], end_date[2], tzinfo=datetime.timezone.utc)
         else:
             tuples_have_year[1] = False
-            end_date = datetime.datetime(now.year, end_date[0], end_date[1], tzinfo=timezone.utc)
+            end_date = datetime.datetime(now.year, end_date[0], end_date[1], tzinfo=datetime.timezone.utc)
         # If no year specified, auto fix order
         if tuples_have_year == [False, False] and start_date > end_date:
             end_date = end_date.replace(now.year + 1)
@@ -2120,9 +2120,9 @@ def getEventStatus(start_date=None, end_date=None, ends_within=0, starts_within=
     """
     now = timezone.now()
     if type(start_date) == datetime.date:
-        start_date = datetime.datetime.combine(start_date, now.time()).replace(tzinfo=timezone.utc)
+        start_date = datetime.datetime.combine(start_date, now.time()).replace(tzinfo=datetime.timezone.utc)
     if type(end_date) == datetime.date:
-        end_date = datetime.datetime.combine(end_date, now.time()).replace(tzinfo=timezone.utc)
+        end_date = datetime.datetime.combine(end_date, now.time()).replace(tzinfo=datetime.timezone.utc)
     start_date, end_date, tuples_have_year = addYearToEventWithoutYear(
         start_date, end_date, return_have_year=True)
     if not start_date and not end_date:
@@ -3709,8 +3709,8 @@ def updateAllRelatedCaches():
 class ColorInput(TextInput):
     input_type = 'color'
 
-    def render(self, name, value, attrs=None):
-        rendered = super(ColorInput, self).render(name, value, attrs=attrs)
+    def render(self, name, value, attrs=None, renderer=None):
+        rendered = super(ColorInput, self).render(name, value, attrs=attrs, renderer=renderer)
         if not self.is_required:
             return mark_safe(u'{input} <input type="checkbox" name="unset-{name}"{checked}> {none}'.format(
                 input=rendered,
@@ -4640,7 +4640,7 @@ def imageSquareThumbnailFromData(data, filename, size=200, return_data=False, re
             left = 0
             bottom = new_height - top
             right = size
-        image = image.resize((int(new_width), int(new_height)), Image.ANTIALIAS)
+        image = image.resize((int(new_width), int(new_height)), Image.LANCZOS)
         image = image.crop((int(left), int(top), int(right), int(bottom)))
         return image
     return _imageProcessing(

@@ -839,7 +839,7 @@ def _birthday_tags_per_characters_key(key):
                 _birthday_year, birthday_month, birthday_day = birthday
             else:
                 birthday_month, birthday_day = birthday
-            utc_birthday_this_year = datetime.datetime(year, birthday_month, birthday_day, tzinfo=timezone.utc)
+            utc_birthday_this_year = datetime.datetime(year, birthday_month, birthday_day, tzinfo=datetime.timezone.utc)
             # Tag can be seen if it ended already, or starts within the next 30 days
             if (utc_birthday_this_year < ((LAUNCH_DATE or LAST_SERVER_RESTART) - relativedelta(days=5))
                 or getEventStatus(utc_birthday_this_year, starts_within=30) not in ['ended', 'starts_soon']):

@@ -7,19 +7,19 @@ name = "MagiCircles"
 version = "1.0"
 description = "Let's do some magic!"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 license = { text = "Simple non code license (SNCL), see LICENCE" }
 authors = [
     { name = "Deby Lepage", email = "db0company@gmail.com" },
 ]
 dependencies = [
-    "Django==4.1.13",
-    "Pillow==9.5.0",
+    "Django==5.2.16",
+    "Pillow==12.3.0",
     "Wand==0.5.3",
     "django-bootstrap-form==3.2",
     "django-common-helpers==0.7.0",
     "django-cors-headers==3.13.0",
-    "django-filter==2.4.0",
+    "django-filter==26.1",
     "django-multiupload==0.6.1",
     "django-oauth-toolkit==0.10.0",
     "django-recaptcha3==0.4.0",
