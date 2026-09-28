@@ -83,19 +83,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='notification',
             name='i_message',
-            field=models.PositiveIntegerField(verbose_name=b'Notification type'),
+            field=models.PositiveIntegerField(verbose_name='Notification type'),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='prize',
             name='i_character',
-            field=models.CharField(max_length=200, null=True, verbose_name=b'Character', choices=[('1', 'Kasumi Toyama'), ('2', 'an idol')]),
+            field=models.CharField(max_length=200, null=True, verbose_name='Character', choices=[('1', 'Kasumi Toyama'), ('2', 'an idol')]),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='userlink',
             name='i_type',
-            field=models.CharField(max_length=20, verbose_name='Platform', choices=[(b'twitter', b'Twitter'), (b'facebook', b'Facebook'), (b'reddit', b'Reddit'), (b'schoolidolu', b'School Idol Tomodachi'), (b'cpro', b'Cinderella Producers'), (b'bang', b'Bandori Party'), (b'stardustrun', b'Stardust Run'), (b'frgl', b'fr.gl'), (b'instagram', b'Instagram'), (b'youtube', b'YouTube'), (b'tumblr', b'Tumblr'), (b'twitch', b'Twitch'), (b'steam', b'Steam'), (b'osu', b'Osu'), (b'pixiv', b'Pixiv'), (b'deviantart', b'DeviantArt'), (b'crunchyroll', b'Crunchyroll'), (b'mal', b'MyAnimeList'), (b'animeplanet', b'Anime-Planet'), (b'myfigurecollection', b'MyFigureCollection'), (b'line', b'LINE Messenger'), (b'github', b'GitHub'), (b'carrd', b'Carrd'), (b'listography', b'Listography')]),
+            field=models.CharField(max_length=20, verbose_name='Platform', choices=[('twitter', 'Twitter'), ('facebook', 'Facebook'), ('reddit', 'Reddit'), ('schoolidolu', 'School Idol Tomodachi'), ('cpro', 'Cinderella Producers'), ('bang', 'Bandori Party'), ('stardustrun', 'Stardust Run'), ('frgl', 'fr.gl'), ('instagram', 'Instagram'), ('youtube', 'YouTube'), ('tumblr', 'Tumblr'), ('twitch', 'Twitch'), ('steam', 'Steam'), ('osu', 'Osu'), ('pixiv', 'Pixiv'), ('deviantart', 'DeviantArt'), ('crunchyroll', 'Crunchyroll'), ('mal', 'MyAnimeList'), ('animeplanet', 'Anime-Planet'), ('myfigurecollection', 'MyFigureCollection'), ('line', 'LINE Messenger'), ('github', 'GitHub'), ('carrd', 'Carrd'), ('listography', 'Listography')]),
             preserve_default=True,
         ),
         migrations.AlterField(

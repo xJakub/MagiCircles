@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='activity',
             name='_original_image',
-            field=models.ImageField(null=True, upload_to=magi.utils.uploadTiny(b'activities/')),
+            field=models.ImageField(null=True, upload_to=magi.utils.uploadTiny('activities/')),
             preserve_default=True,
         ),
     ]

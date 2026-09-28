@@ -1,6 +1,6 @@
 import re
 from django import template
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from magi.django_translated import t
 
 register = template.Library()
@@ -17,7 +17,7 @@ def split(string, splitter=","):
 
 @register.filter
 def addint(string, int):
-    return string + unicode(int)
+    return string + str(int)
 
 @register.filter
 def times(value):
@@ -91,7 +91,7 @@ def getattribute(value, arg):
         if callable(getattr(value, arg)):
             return getattr(value, arg)()
         return getattr(value, arg)
-    elif hasattr(value, 'has_key') and value.has_key(arg):
+    elif hasattr(value, 'has_key') and arg in value:
         return value[arg]
     elif re.compile("^\d+$").match(str(arg)) and len(value) > int(arg):
         return value[int(arg)]

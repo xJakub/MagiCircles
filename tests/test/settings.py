@@ -1,5 +1,6 @@
 from django.conf import settings as django_settings
-from django.utils.translation import ugettext_lazy as _, string_concat
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy as _
 from test import models
 
 SITE_NAME = 'Sample Website'
@@ -43,7 +44,7 @@ GROUPS = [
         'requires_staff': True,
     }),
     ('twitter_cm', {
-        'translation': string_concat(_('Community manager'), ' (', _('Twitter'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Community manager'), ' (', _('Twitter'), ')'),
         'description': 'We got you covered with all the game news on Twitter! Thanks to our active team, you know that by following us on Twitter, you\'ll never miss anything!',
         'requires_staff': True,
     }),
@@ -58,12 +59,12 @@ GROUPS = [
         'requires_staff': True,
     }),
     ('a_moderator', {
-        'translation': string_concat(_('Moderator'), ' (', _('Active'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Moderator'), ' (', _('Active'), ')'),
         'description': 'We want all of our users of all ages to have a pleasant a safe stay in our website. That\'s why our team of moderators use the website everyday and report anything that might be inappropriate or invalid!',
         'requires_staff': True,
     }),
     ('d_moderator', {
-        'translation': string_concat(_('Moderator'), ' (', _('Decisive'), ')'),
+        'translation': format_lazy('{}{}{}{}', _('Moderator'), ' (', _('Decisive'), ')'),
         'description': 'When something gets reported, our team of decisive moderators will make a decision on whether or not it should be edited or deleted. This 2-steps system ensures that our team makes fair decisions!',
         'permissions': ['moderate_reports', 'edit_reported_things'],
         'requires_staff': True,

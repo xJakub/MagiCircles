@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='notification',
             name='image',
-            field=models.ImageField(max_length=1200, null=True, upload_to=magi.utils.uploadItem(b'notifications/'), blank=True),
+            field=models.ImageField(max_length=1200, null=True, upload_to=magi.utils.uploadItem('notifications/'), blank=True),
             preserve_default=True,
         ),
     ]

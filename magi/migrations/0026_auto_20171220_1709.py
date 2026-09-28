@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='report',
             name='i_status',
-            field=models.PositiveIntegerField(default=0, verbose_name=b'Status', choices=[(0, b'Pending'), (1, b'Deleted'), (2, b'Edited'), (3, b'Ignored')]),
+            field=models.PositiveIntegerField(default=0, verbose_name='Status', choices=[(0, 'Pending'), (1, 'Deleted'), (2, 'Edited'), (3, 'Ignored')]),
             preserve_default=True,
         ),
         migrations.AlterField(

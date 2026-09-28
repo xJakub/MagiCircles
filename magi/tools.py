@@ -3,7 +3,7 @@ import datetime, time, sys, os, math, pytz
 from collections import OrderedDict
 from PIL import Image
 from django.utils import timezone
-from django.utils.translation import activate as translation_activate, ugettext_lazy as _, get_language
+from django.utils.translation import activate as translation_activate, gettext_lazy as _, get_language
 from django.utils.formats import date_format
 from django.utils.html import escape
 from django.core.exceptions import ObjectDoesNotExist
@@ -82,7 +82,7 @@ def getUserFromLink(value, type=None):
 # Get total donators (for generated settings)
 
 def totalDonatorsThisMonth():
-    print 'Get total donators'
+    print('Get total donators')
     now = timezone.now()
     this_month = datetime.datetime(year=now.year, month=now.month, day=1)
     try:
@@ -95,14 +95,14 @@ def totalDonatorsThisMonth():
     return models.Badge.objects.filter(donation_month=donation_month).values('user').distinct().count()
 
 def totalDonators():
-    print 'Get total donators'
+    print('Get total donators')
     return models.UserPreferences.objects.filter(i_status__isnull=False).exclude(i_status__exact='').count()
 
 ############################################################
 # Get latest donation month (for generated settings)
 
 def latestDonationMonth(failsafe=False):
-    print 'Get latest donation month'
+    print('Get latest donation month')
     now = timezone.now()
     this_month = datetime.datetime(year=now.year, month=now.month, day=1)
     try:
@@ -134,7 +134,7 @@ def latestDonationMonth(failsafe=False):
 # Get staff configurations + latest news(for generated settings)
 
 def getStaffConfigurations(generated_settings=None):
-    print 'Get staff configurations and latest news'
+    print('Get staff configurations and latest news')
     staff_configurations = {}
     latest_news = {}
     for staffconfiguration in models.StaffConfiguration.objects.all():
@@ -153,7 +153,7 @@ def getStaffConfigurations(generated_settings=None):
         else:
             staff_configurations[staffconfiguration.key] = staffconfiguration.value
     latest_news = list(latest_news.items())
-    latest_news.sort(key=lambda (k, v): k)
+    latest_news.sort(key=lambda kv: kv[0])
     latest_news = [
         news
         for number, news in latest_news
@@ -189,12 +189,12 @@ def defaultGetNameImageURLFromCharacter(character):
         image = getattr(character, image_field, None)
         if image:
             break
-    return getattr(character, 'first_name', unicode(character)), image, character.item_url
+    return getattr(character, 'first_name', str(character)), image, character.item_url
 
 def getCharactersBirthdays(queryset, get_name_image_url_from_character=defaultGetNameImageURLFromCharacter,
                            latest_news=None, days_after=12, days_before=1, field_name='birthday',
                            category='characters_birthdays'):
-    print 'Show a banner for current and upcoming {}'.format(snakeCaseToTitle(category))
+    print('Show a banner for current and upcoming {}'.format(snakeCaseToTitle(category)))
     if not latest_news:
         latest_news = []
     now = timezone.now()
@@ -232,7 +232,7 @@ def getCharactersBirthdays(queryset, get_name_image_url_from_character=defaultGe
 # Get users birthdays (for generated settings)
 
 def getUsersBirthdaysToday(image=None, latest_news=None, max_usernames=4):
-    print 'Show a happy birthday banner for the users whose birthday is today'
+    print('Show a happy birthday banner for the users whose birthday is today')
     if not latest_news:
         latest_news = []
     now = timezone.now()
@@ -261,7 +261,7 @@ def getUsersBirthdaysToday(image=None, latest_news=None, max_usernames=4):
             'url': (
                 users[0].item_url
                 if len(users) == 1
-                else u'/users/?ids={}&ordering=preferences___cache_reputation&reverse_order=on'.format(u','.join([unicode(user.id) for user in users]))
+                else u'/users/?ids={}&ordering=preferences___cache_reputation&reverse_order=on'.format(u','.join([str(user.id) for user in users]))
             ),
             'hide_title': False,
             'css_classes': 'birthday font0-5',
@@ -301,7 +301,7 @@ def generateBackgroundsList(queryset=None, filter_queryset=None, check_for_thres
                 background, 'background_image_2x_url',
                 getattr(background, 'image_2x_url', image),
             ),
-            'name': unicode(background),
+            'name': str(background),
             'names': background.unicodes,
             'homepage': getattr(
                 background, 'show_background_on_homepage',
@@ -312,14 +312,14 @@ def generateBackgroundsList(queryset=None, filter_queryset=None, check_for_thres
     return backgrounds, total
 
 def getBackgroundsFromModel():
-    print 'Get backgrounds'
+    print('Get backgrounds')
     return generateBackgroundsList(check_for_threshold=True)
 
 ############################################################
 # Get seasonal activity tag banners
 
 def getSeasonalActivityTagBanners(latest_news=None, seasonal_settings=None):
-    print 'Get seasonal activity tag banners'
+    print('Get seasonal activity tag banners')
     if latest_news is None:
         latest_news = []
     if not seasonal_settings:
@@ -336,7 +336,7 @@ def getSeasonalActivityTagBanners(latest_news=None, seasonal_settings=None):
             old_lang = get_language()
             for lang in LANGUAGES_DICT.keys():
                 translation_activate(lang)
-                t_titles[lang] = unicode(tag)
+                t_titles[lang] = str(tag)
                 translation_activate(old_lang)
             latest_news.append({
                 'category': 'seasonal_activity_tag',
@@ -363,12 +363,12 @@ def generateCharactersSettings(
         else:
             base_name = camelToSnakeCase(queryset.model.__name__, upper=True) + u'S'
 
-    print u'Get the {}'.format(snakeCaseToTitle(base_name))
+    print(u'Get the {}'.format(snakeCaseToTitle(base_name)))
 
     generated_settings[base_name] = []
     original_names = {}
     for character in queryset:
-        name = unicode(character)
+        name = str(character)
         if to_image:
             image = to_image(character)
         else:
@@ -394,7 +394,7 @@ def generateCharactersSettings(
             if character.pk not in original_names:
                 continue
             translation_activate(language)
-            name = unicode(character)
+            name = str(character)
             if name != original_names[character.pk]:
                 if character.pk not in all_names:
                     all_names[character.pk] = {}
@@ -414,9 +414,9 @@ def generateCharactersSettings(
             if character.pk in original_names and getattr(character, 'birthday', None)
         ])
 
-        generated_settings[u'{}_BIRTHDAY_TODAY'.format(base_name)] = queryset.filter(
+        generated_settings[u'{}_BIRTHDAY_TODAY'.format(base_name)] = list(queryset.filter(
             birthdays_within(days_after=1, days_before=1)).values_list(
-                'pk', flat=True)
+                'pk', flat=True))
 
 ############################################################
 # Generate share images for list views
@@ -444,7 +444,7 @@ def generateShareImageForMainCollections(collection):
         if len(images) == IMAGES_PER_SHARE_IMAGE:
             break
     if len(images) != IMAGES_PER_SHARE_IMAGE:
-        print '!! Warning: Not enough images to generate share image for', collection.plural_name
+        print('!! Warning: Not enough images to generate share image for', collection.plural_name)
         return None
     # Create share image from images
     image_instance = makeImageGrid(
@@ -457,10 +457,10 @@ def generateShareImageForMainCollections(collection):
     )
     image_instance._thumbnail_image = image_instance.image
     image_instance.save()
-    return unicode(image_instance.image)
+    return str(image_instance.image)
 
 def getCacheForFilterFormChoices():
-    print 'Get cache of filter form choices'
+    print('Get cache of filter form choices')
     cached_choices = {}
     for collection_name, collection in getMagiCollections().items():
         if not collection.list_view.filters_details:
@@ -512,21 +512,21 @@ def getCacheForFilterFormChoices():
                     removed.append(verbose)
             cached_choices[collection.name][field_name] = filtered_choices
             if django_settings.DEBUG and getattr(django_settings, 'DEBUG_SHOW_CACHED_CHOICES', True):
-                print u'  {} filter form: {} Removed {} choices, choices left: {}'.format(
+                print(u'  {} filter form: {} Removed {} choices, choices left: {}'.format(
                     collection.title, filter_form.fields[field_name].label, len(removed),
                     (andJoin(kept) if kept else 'none') if removed else 'all',
-                )
+                ))
     return cached_choices
 
 ############################################################
 # Generate settings (for generated settings)
 
 def seasonalGeneratedSettings(staff_configurations):
-    print 'Get seasonal settings'
+    print('Get seasonal settings')
     seasonal_settings = {}
     for season_name, season in SEASONS.items():
         if checkIsCurrentSeasonNotFromGeneratedSettings(SEASONS, season_name):
-            print '  Current season:', season_name
+            print('  Current season:', season_name)
             seasonal_settings[season_name] = {}
             for variable in seasons.AVAILABLE_SETTINGS:
                 if variable in season:
@@ -575,7 +575,7 @@ def magiCirclesGeneratedSettings(existing_values):
 
     # Other characters
     if OTHER_CHARACTERS_MODELS:
-        generated_settings['OTHER_CHARACTERS_KEYS'] = OTHER_CHARACTERS_MODELS.keys()
+        generated_settings['OTHER_CHARACTERS_KEYS'] = list(OTHER_CHARACTERS_MODELS.keys())
         for key, character_details in OTHER_CHARACTERS_MODELS.items():
             if not isinstance(character_details, dict):
                 character_details = { 'model': character_details }
@@ -641,11 +641,11 @@ def magiCirclesGeneratedSettings(existing_values):
         else:
             generated_share_images_last_date = now
             generated_share_images = {}
-            print 'Generate auto share images'
+            print('Generate auto share images')
             for collection_name, collection in getMagiCollections().items():
                 if collection.auto_share_image:
                     generated_share_images[collection.name] = generateShareImageForMainCollections(collection)
-    generated_settings['GENERATED_SHARE_IMAGES_LAST_DATE'] = 'datetime.datetime.fromtimestamp(' + unicode(
+    generated_settings['GENERATED_SHARE_IMAGES_LAST_DATE'] = 'datetime.datetime.fromtimestamp(' + str(
         time.mktime(generated_share_images_last_date.timetuple())
     ) + ')'
     generated_settings['GENERATED_SHARE_IMAGES'] = generated_share_images
@@ -716,20 +716,19 @@ def generateSettings(values, imports=[]):
 import datetime\n\
 ' + u'\n'.join(listUnique(imports)) + '\n\
 ' + u'\n'.join([
-    u'{key} = {value}'.format(key=key, value=unicode(value))
+    u'{key} = {value}'.format(key=key, value=str(value))
     for key, value in m_values.items()
 ]) + u'\n\
-GENERATED_DATE = datetime.datetime.fromtimestamp(' + unicode(time.time()) + u')\n\
+GENERATED_DATE = datetime.datetime.fromtimestamp(' + str(time.time()) + u')\n\
 '
-    with open(django_settings.BASE_DIR + '/' + django_settings.SITE + '_project/generated_settings.py', 'w') as f:
-        f.write(s.encode('utf8'))
-        f.close()
+    with open(django_settings.BASE_DIR + '/' + django_settings.SITE + '_project/generated_settings.py', 'w', encoding='utf8') as f:
+        f.write(s)
 
 ############################################################
 # Generate map
 
 def generateMap():
-    print '[Info]', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Generating map...'
+    print('[Info]', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Generating map...')
     map = models.UserPreferences.objects.filter(latitude__isnull=False).select_related('user')
 
     mapcache = u'{# this file is generated, do not edit it #}{% extends "base.html" %}{% load l10n %}{% block content %}<div class="padding15" id="map-title">{% include \'include/page_title.html\' with show_small_title=True %}</div><div id="map"></div>{% endblock %}{% block afterjs %}{% localize off %}<script>var center=new google.maps.LatLng({% if center %}{{ center.latitude }},{{ center.longitude }}{% else %}30,0{% endif %});var zoom={% if zoom %}{{ zoom }}{% else %}2{% endif %};var addresses = ['
@@ -752,12 +751,11 @@ def generateMap():
                 close=u'}',
             )
         except:
-            print 'One user not added in map', u.user.username, u.location
-            print sys.exc_info()[0]
+            print('One user not added in map', u.user.username, u.location)
+            print(sys.exc_info()[0])
 
     mapcache += u'];</script><script src="' + SITE_STATIC_URL + u'static/js/map.js?' + STATIC_FILES_VERSION + u'"></script>{% endlocalize %}{% endblock %}'
 
-    with open(django_settings.BASE_DIR + '/' + django_settings.SITE + '/templates/pages/map.html', 'w') as f:
-        f.write(mapcache.encode('UTF-8'))
-    f.close()
-    print '[Info]', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Done'
+    with open(django_settings.BASE_DIR + '/' + django_settings.SITE + '/templates/pages/map.html', 'w', encoding='utf8') as f:
+        f.write(mapcache)
+    print('[Info]', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), 'Done')

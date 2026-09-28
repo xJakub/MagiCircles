@@ -31,7 +31,7 @@ from magi.utils import (
     tourldash,
     failSafe,
 )
-from django.utils.translation import ugettext_lazy as _, string_concat, get_language
+from django.utils.translation import gettext_lazy as _, get_language
 
 settings_module = __import__(django_settings.SITE + '.settings', globals(), locals(), ['*'])
 
@@ -795,20 +795,20 @@ for _k, _v in DEFAULT_HOMEPAGE_ART_POSITION.items():
 # Add characters birthdays to activity tags
 
 _CHARACTERS_NAMES_U = { _key: OrderedDict([
-    (unicode(_pk), _name) for (_pk, _name, _image) in getattr(django_settings, _key, [])
+    (str(_pk), _name) for (_pk, _name, _image) in getattr(django_settings, _key, [])
 ]) for _key in ['FAVORITE_CHARACTERS'] + getattr(django_settings, 'OTHER_CHARACTERS_KEYS', []) }
 
 
 _CHARACTERS_LOCALIZED_NAMES_U = { _key: OrderedDict([
-    (unicode(_pk), _names) for (_pk, _names) in getattr(django_settings, '{}_NAMES'.format(_key), {}).items()
+    (str(_pk), _names) for (_pk, _names) in getattr(django_settings, '{}_NAMES'.format(_key), {}).items()
 ]) for _key in ['FAVORITE_CHARACTERS'] + getattr(django_settings, 'OTHER_CHARACTERS_KEYS', []) }
 
 def _getCharacterNameFromPk(key, pk):
     language = get_language()
     if language == 'en':
-        return _CHARACTERS_NAMES_U[key].get(unicode(pk), None)
-    return (_CHARACTERS_LOCALIZED_NAMES_U[key].get(unicode(pk), {}).get(language, None)
-            or _CHARACTERS_NAMES_U[key].get(unicode(pk), None))
+        return _CHARACTERS_NAMES_U[key].get(str(pk), None)
+    return (_CHARACTERS_LOCALIZED_NAMES_U[key].get(str(pk), {}).get(language, None)
+            or _CHARACTERS_NAMES_U[key].get(str(pk), None))
 
 def _birthday_tags_per_characters_key(key):
     def _birthday_tag_name(pk, year):
@@ -839,7 +839,7 @@ def _birthday_tags_per_characters_key(key):
                 _birthday_year, birthday_month, birthday_day = birthday
             else:
                 birthday_month, birthday_day = birthday
-            utc_birthday_this_year = datetime.datetime(year, birthday_month, birthday_day, tzinfo=timezone.utc)
+            utc_birthday_this_year = datetime.datetime(year, birthday_month, birthday_day, tzinfo=datetime.timezone.utc)
             # Tag can be seen if it ended already, or starts within the next 30 days
             if (utc_birthday_this_year < ((LAUNCH_DATE or LAST_SERVER_RESTART) - relativedelta(days=5))
                 or getEventStatus(utc_birthday_this_year, starts_within=30) not in ['ended', 'starts_soon']):
@@ -876,7 +876,7 @@ def _seasonal_tags():
             tags.append((
                 u'season-{}'.format(season_name), {
                     'translation': tag,
-                    'start_date': season.get('start_date', (01, 01)),
+                    'start_date': season.get('start_date', (1, 1)),
                     'end_date': season.get('end_date', (12, 31)),
                 }
             ))

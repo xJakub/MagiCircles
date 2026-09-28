@@ -1,8 +1,10 @@
 import datetime
 from collections import OrderedDict
 from django.contrib.auth.models import User
-from django.utils.translation import ugettext_lazy as _, string_concat
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy as _
 from django.db import models
+from django.db.models.fields.related import ForeignObjectRel
 from django.conf import settings as django_settings
 from django.core.validators import RegexValidator
 from django.utils import timezone
@@ -72,7 +74,7 @@ class AccountAsOwnerModel(MagiModel):
     @classmethod
     def cached_account_extra(self, d):
         d['owner']['pk'] = d['owner']['id']
-        d['owner']['unicode'] = unicode(d['owner']['id'])
+        d['owner']['unicode'] = str(d['owner']['id'])
         d['item_url'] = u'/user/{}/#{}'.format(d['owner']['id'], d['id'])
         d['full_item_url'] = u'{}{}'.format(django_settings.SITE_URL, d['item_url'])
         d['http_item_url'] = u'http:' + d['full_item_url'] if 'http' not in d['full_item_url'] else d['full_item_url']
@@ -81,7 +83,7 @@ class AccountAsOwnerModel(MagiModel):
     def to_cache_account(self):
         return {
             'id': self.account_id,
-            'unicode': unicode(self.account),
+            'unicode': str(self.account),
             'owner': {
                 'id': self.account.owner_id,
             },
@@ -109,8 +111,8 @@ def to_cached_preferences(
 ):
     try:
         preferences_model = next(
-            rel.model for rel in item._meta.get_field('owner').rel.to._meta.get_all_related_objects()
-            if rel.get_accessor_name() == 'preferences'
+            rel.related_model for rel in item._meta.get_field('owner').remote_field.model._meta.get_fields()
+            if isinstance(rel, ForeignObjectRel) and rel.get_accessor_name() == 'preferences'
         )
     except StopIteration:
         preferences_model = None
@@ -207,7 +209,7 @@ class CacheOwner(MagiModel):
 class BaseAccount(CacheOwner):
     collection_name = 'account'
 
-    owner = models.ForeignKey(User, related_name='accounts')
+    owner = models.ForeignKey(User, related_name='accounts', on_delete=models.CASCADE)
     creation = models.DateTimeField(_('Join date'), auto_now_add=True)
     nickname = models.CharField(_('Nickname'), max_length=200, null=True, help_text=_('Give a nickname to your account to easily differentiate it from your other accounts when you\'re managing them.'))
     start_date = models.DateField(_('Start date'), null=True, validators=[PastOnlyValidator])
@@ -256,7 +258,7 @@ class BaseAccount(CacheOwner):
     def leaderboard_image_url(self):
         return get_image_url_from_path(u'static/img/badges/medal{}.png'.format(4 - self.cached_leaderboard))
 
-    def __unicode__(self):
+    def __str__(self):
         if self.id:
             return u'{}{}'.format(
                 self.nickname if self.nickname else self.cached_owner.username,
@@ -275,7 +277,7 @@ class MobileGameAccount(BaseAccount):
         RegexValidator(r'^[0-9 ]+$', t['Enter a number.']),
     ])
     show_friend_id = models.BooleanField(_('Should your friend ID be visible to other players?'), default=True)
-    accept_friend_requests = models.NullBooleanField(_('Accept friend requests'), null=True)
+    accept_friend_requests = models.BooleanField(_('Accept friend requests'), null=True)
 
     # How do you play?
 
@@ -322,8 +324,8 @@ class MobileGameAccount(BaseAccount):
 
     screenshot = models.ImageField(
         _('Screenshot'), help_text=_('In-game profile screenshot'),
-        upload_to=uploadItem('account_screenshot'), null=True, blank=True)
-    _thumbnail_screenshot = models.ImageField(null=True, upload_to=uploadThumb('account_screenshot'))
+        upload_to=uploadItem('account_screenshot'), null=True, blank=True, max_length=255)
+    _thumbnail_screenshot = models.ImageField(null=True, upload_to=uploadThumb('account_screenshot'), max_length=255)
     level_on_screenshot_upload = models.PositiveIntegerField('Level on screenshot upload', null=True)
     is_hidden_from_leaderboard = models.BooleanField('Hide from leaderboard', default=False, db_index=True)
     is_playground = models.BooleanField(
@@ -340,14 +342,12 @@ class MobileGameAccount(BaseAccount):
 
 BASE_MODEL_FIELDS_PER_VERSION_AND_LANGUAGE_FOR_IMAGES = OrderedDict([
     (u'{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        string_concat(*([_version['translation'], ' - ', _('Image')] + (
+        format_lazy('{}', *([_version['translation'], ' - ', _('Image')] + (
             [' - ', getVerboseLanguage(_language)] if _language else []
         ))),
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True, max_length=255,)),
     (u'_original_{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, blank=True, max_length=255,)),
 ])
 
 def getBaseModelWithVersions(
@@ -378,11 +378,11 @@ def getBaseModelWithVersions(
 
     has_images = bool([version for version in versions.values() if version.get('image', None)])
     has_icons = bool([version for version in versions.values() if version.get('icon', None)])
-    has_languages = bool(getLanguagesForVersion(versions[versions.keys()[0]])) if versions else False
+    has_languages = bool(getLanguagesForVersion(versions[list(versions.keys())[0]])) if versions else False
     if not has_languages:
         if extra_fields_per_language:
             if django_settings.DEBUG:
-                print '[Warning] extra_fields_per_language was specified in model with versions, but versions don\'t have languages.'
+                print('[Warning] extra_fields_per_language was specified in model with versions, but versions don\'t have languages.')
         else:
             fields.update(fields_per_language)
 
@@ -412,7 +412,7 @@ def getBaseModelWithVersions(
         VERSIONS_CHOICES = [(_name, _info['translation']) for _name, _info in VERSIONS.items()]
         c_versions = models.TextField(
             _('Server availability'), blank=True, null=True,
-            default=u'"{}"'.format(versions.keys()[0]),
+            default=u'"{}"'.format(list(versions.keys())[0]),
         )
         VERSIONS_HAVE_LANGUAGES = has_languages
         VERSIONS_HAVE_IMAGES = has_images
@@ -557,12 +557,12 @@ def getBaseModelWithVersions(
         ############################################################
         # Unicode
 
-        def __unicode__(self):
+        def __str__(self):
             relevant_name = self.relevant_name
             return (
-                (unicode(relevant_name) if relevant_name else None)
+                (str(relevant_name) if relevant_name else None)
                 or default_verbose_name
-                or super(BaseModelWithVersions, self).__unicode__()
+                or super(BaseModelWithVersions, self).__str__()
             )
 
         class Meta(MagiModel.Meta):
@@ -571,7 +571,7 @@ def getBaseModelWithVersions(
     ############################################################
     # Add fields and utils per version
 
-    default_ordering = getFieldNameForVersion('{}start_date', versions[versions.keys()[0]])
+    default_ordering = getFieldNameForVersion('{}start_date', versions[list(versions.keys())[0]])
 
     BaseModelWithVersions._versions_by_prefixes = {
         version['prefix']: version_name
@@ -687,7 +687,7 @@ class _BaseEvent(MagiModel):
     collection_name = 'event'
     TRANSLATED_FIELDS = ['name', 'm_description']
 
-    owner = models.ForeignKey(User, related_name='added_%(class)ss')
+    owner = models.ForeignKey(User, related_name='added_%(class)ss', on_delete=models.CASCADE)
 
     ############################################################
     # Name
@@ -704,8 +704,8 @@ class _BaseEvent(MagiModel):
     d_m_descriptions = models.TextField(_('Details'), null=True)
     _cache_description = models.TextField(null=True)
 
-    def __unicode__(self):
-        return unicode(self.t_name)
+    def __str__(self):
+        return str(self.t_name)
 
     class Meta(MagiModel.Meta):
         abstract = True
@@ -713,8 +713,8 @@ class _BaseEvent(MagiModel):
 class BaseEvent(_BaseEvent):
     collection_name = 'event'
 
-    image = models.ImageField(_('Image'), upload_to=uploadItem('event'), null=True)
-    _original_image = models.ImageField(null=True, upload_to=uploadTiny('event'))
+    image = models.ImageField(_('Image'), upload_to=uploadItem('event'), null=True, max_length=255)
+    _original_image = models.ImageField(null=True, upload_to=uploadTiny('event'), max_length=255)
 
     start_date = models.DateTimeField(_('Beginning'), null=True)
     end_date = models.DateTimeField(_('End'), null=True)
@@ -729,23 +729,21 @@ class BaseEvent(_BaseEvent):
 
 BASE_EVENT_FIELDS_PER_VERSION = OrderedDict([
     (u'{}start_date', lambda _version_name, _version: models.DateTimeField(
-        string_concat(_version['translation'], ' - ', _('Beginning')), null=True,
+        format_lazy('{}{}{}', _version['translation'], ' - ', _('Beginning')), null=True,
     )),
     (u'{}end_date', lambda _version_name, _version: models.DateTimeField(
-        string_concat(_version['translation'], ' - ', _('End')), null=True,
+        format_lazy('{}{}{}', _version['translation'], ' - ', _('End')), null=True,
     )),
 ])
 
 BASE_EVENT_FIELDS_PER_VERSION_AND_LANGUAGE = OrderedDict([
     (u'{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        string_concat(*([_version['translation'], ' - ', _('Image')] + (
+        format_lazy('{}', *([_version['translation'], ' - ', _('Image')] + (
             [' - ', getVerboseLanguage(_language)] if _language else []
         ))),
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, max_length=255,)),
     (u'_original_{}image', lambda _version_name, _version, _language=None: models.ImageField(
-        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True,
-    )),
+        upload_to=uploadItem(u'event/{}'.format(_version_name.lower())), null=True, max_length=255,)),
 ])
 
 _timezones_lambda = lambda _version_name, _version: _version.get(
@@ -780,7 +778,7 @@ def getBaseEventWithVersions(
 class BaseEventParticipation(AccountAsOwnerModel, AutoImageFromParent):
     collection_name = 'eventparticipation'
 
-    account = models.ForeignKey('{}.Account'.format(django_settings.SITE), related_name='%(class)ss', verbose_name=_('Account'))
+    account = models.ForeignKey('{}.Account'.format(django_settings.SITE), related_name='%(class)ss', verbose_name=_('Account'), on_delete=models.CASCADE)
 
     class Meta(MagiModel.Meta):
         abstract = True

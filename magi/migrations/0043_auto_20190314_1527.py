@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='report',
             name='staff_message',
-            field=models.TextField(null=True, verbose_name=b'Staff message'),
+            field=models.TextField(null=True, verbose_name='Staff message'),
             preserve_default=True,
         ),
         migrations.AlterField(

@@ -15,7 +15,7 @@ from magi.utils import (
 
 def getFirstVersion(item=None, versions=None):
     versions = versions or (item.VERSIONS if item else {})
-    return versions.keys()[0]
+    return list(versions.keys())[0]
 
 def getRelevantVersion(
         request=None,
@@ -37,7 +37,7 @@ def getRelevantVersion(
     """
     versions = versions or (item.VERSIONS if item else {})
     i_version_string_to_version = {
-        unicode(i): version_name
+        str(i): version_name
         for i, version_name in enumerate(versions.keys())
     }
     if exclude_versions:
@@ -169,7 +169,7 @@ def getFieldForRelevantVersion(
                     return english_version_name, value
                 return value
     # Fallback to first version in list of versions
-    first_version_name, first_version = item.VERSIONS.items()[0]
+    first_version_name, first_version = list(item.VERSIONS.items())[0]
     first_version_value = getFieldForVersion(item, field_name, first_version_name, first_version, get_value=get_value)
     if first_version_value:
         if return_version:
@@ -212,13 +212,13 @@ def getRelevantVersions(
     if not relevant_versions and fallback_to_first:
         versions = versions or (item.VERSIONS if item else {})
         if versions:
-            relevant_versions.append(versions.keys()[0])
+            relevant_versions.append(list(versions.keys())[0])
     return relevant_versions
 
 def getAllVersionsOrderedByRelevance(*args, **kwargs):
     relevant_versions = getRelevantVersions(*args, **kwargs)
     versions = kwargs.get('versions', None) or (kwargs['item'].VERSIONS if kwargs.get('item', None) else {})
-    return listUnique(relevant_versions + versions.keys())
+    return listUnique(relevant_versions + list(versions.keys()))
 
 # Translated fields
 
@@ -301,7 +301,7 @@ def getValueOfRelevantLanguageForVersion(item, field_name, version_name, version
         if values.get(language, None):
             return values[language]
         # Fallback to 1st in list
-        return values[values.keys()[0]]
+        return values[list(values.keys())[0]]
     # Fallback to default
     return default
 
@@ -328,7 +328,7 @@ def getRelevantTranslatedValueForVersion(item, field_name, version_name, version
         if translations.get(language, None):
             return translations[language]
         # Fallback to 1st in list
-        return translations[translations.keys()[0]]
+        return translations[list(translations.keys())[0]]
     elif fallback:
         fallback_value = _getFallbackForTranslatedValue(item, field_name, request=None)
         if fallback_value:
@@ -357,7 +357,7 @@ def _getFallbackForTranslatedValue(item, field_name, request=None, return_versio
                 return english_version_name, english_value
             return english_value
     # Fallback to first version in list of versions
-    first_version_name, first_version = item.VERSIONS.items()[0]
+    first_version_name, first_version = list(item.VERSIONS.items())[0]
     first_version_value = getRelevantTranslatedValueForVersion(
         item, field_name, first_version_name, first_version,
         request=request, fallback=False,

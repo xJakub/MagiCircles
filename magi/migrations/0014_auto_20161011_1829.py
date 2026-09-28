@@ -22,11 +22,11 @@ class Migration(migrations.Migration):
                 ('date', models.DateField(default=datetime.datetime.now)),
                 ('name', models.CharField(max_length=50)),
                 ('description', models.CharField(max_length=300)),
-                ('image', models.ImageField(upload_to=magi.models.uploadToRandom(b'badges/'), verbose_name='Image')),
+                ('image', models.ImageField(upload_to=magi.models.uploadToRandom('badges/'), verbose_name='Image')),
                 ('url', models.CharField(max_length=200, null=True)),
-                ('show_on_top_profile', models.BooleanField(default=False, help_text=b'Will be displayed near the share buttons on top of the profile. Generally reserved for donation badges.')),
-                ('show_on_profile', models.BooleanField(default=False, help_text=b'Will be displayed in the "Badges" tab of the profile. Generally only unchecked for donations under $10.')),
-                ('rank', models.PositiveIntegerField(blank=True, help_text=b'Top 3 of this specific badge. Generally used for donators badges', null=True, choices=[(1, 'Bronze'), (2, 'Silver'), (3, 'Gold')])),
+                ('show_on_top_profile', models.BooleanField(default=False, help_text='Will be displayed near the share buttons on top of the profile. Generally reserved for donation badges.')),
+                ('show_on_profile', models.BooleanField(default=False, help_text='Will be displayed in the "Badges" tab of the profile. Generally only unchecked for donations under $10.')),
+                ('rank', models.PositiveIntegerField(blank=True, help_text='Top 3 of this specific badge. Generally used for donators badges', null=True, choices=[(1, 'Bronze'), (2, 'Silver'), (3, 'Gold')])),
             ],
             options={
                 'abstract': False,
@@ -49,25 +49,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='badge',
             name='donation_month',
-            field=models.ForeignKey(related_name='badges', to='magi.DonationMonth', null=True),
+            field=models.ForeignKey(related_name='badges', to='magi.DonationMonth', null=True, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='badge',
             name='owner',
-            field=models.ForeignKey(related_name='badges_created', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(related_name='badges_created', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AddField(
             model_name='badge',
             name='user',
-            field=models.ForeignKey(related_name='badges', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(related_name='badges', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='activity',
             name='_cache_owner_preferences_status',
-            field=models.CharField(max_length=12, null=True, choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Player'), (b'LOVER', 'Super Player'), (b'AMBASSADOR', 'Extreme Player'), (b'PRODUCER', 'Master Player'), (b'DEVOTEE', 'Ultimate Player')]),
+            field=models.CharField(max_length=12, null=True, choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Player'), ('LOVER', 'Super Player'), ('AMBASSADOR', 'Extreme Player'), ('PRODUCER', 'Master Player'), ('DEVOTEE', 'Ultimate Player')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userpreferences',
             name='status',
-            field=models.CharField(max_length=12, null=True, choices=[(b'THANKS', b'Thanks'), (b'SUPPORTER', 'Player'), (b'LOVER', 'Super Player'), (b'AMBASSADOR', 'Extreme Player'), (b'PRODUCER', 'Master Player'), (b'DEVOTEE', 'Ultimate Player')]),
+            field=models.CharField(max_length=12, null=True, choices=[('THANKS', 'Thanks'), ('SUPPORTER', 'Player'), ('LOVER', 'Super Player'), ('AMBASSADOR', 'Extreme Player'), ('PRODUCER', 'Master Player'), ('DEVOTEE', 'Ultimate Player')]),
             preserve_default=True,
         ),
     ]

@@ -15,19 +15,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activity',
             name='image',
-            field=models.ImageField(upload_to=magi.models.uploadToRandom(b'activities/'), null=True, verbose_name='Image', blank=True),
+            field=models.ImageField(upload_to=magi.models.uploadToRandom('activities/'), null=True, verbose_name='Image', blank=True),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='notification',
             name='image',
-            field=models.ImageField(null=True, upload_to=magi.models.uploadToRandom(b'notifications/'), blank=True),
+            field=models.ImageField(null=True, upload_to=magi.models.uploadToRandom('notifications/'), blank=True),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='userimage',
             name='image',
-            field=models.ImageField(upload_to=magi.models.uploadToRandom(b'user_images/')),
+            field=models.ImageField(upload_to=magi.models.uploadToRandom('user_images/')),
             preserve_default=True,
         ),
     ]

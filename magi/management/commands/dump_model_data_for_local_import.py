@@ -1,9 +1,10 @@
 import sys # at the end remove
 from django.conf import settings as django_settings
+from django.core.exceptions import FieldDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User, Group
 from django.db.models import Prefetch
-from django.db.models.fields import FieldDoesNotExist, related
+from django.db.models.fields import related
 from django.db.models.fields.files import ImageField
 from magi.utils import modelHasField
 from magi import models as magi_models
@@ -18,25 +19,25 @@ def get_fields(model):
     foreign_keys = {}
     many_to_many = {}
     unique_fields = []
-    for field_name in model._meta.get_all_field_names():
+    for field in model._meta.get_fields():
+        if isinstance(field, related.ForeignObjectRel):
+            # Reverse relation (not a forward field) - not dumped by this command
+            continue
+        field_name = field.name
         if field_name.startswith('_cache_'):
             continue
         if field_name in ['id', 'owner']:
             continue
-        try:
-            field = model._meta.get_field(field_name)
-            if isinstance(field, related.ForeignKey):
-                if field.rel.to != model: # Avoid circular dependencies
-                    foreign_keys[field_name] = field.rel.to
-            elif isinstance(field, related.ManyToManyField):
-                many_to_many[field_name] = field.rel.to
+        if isinstance(field, related.ForeignKey):
+            if field.remote_field.model != model: # Avoid circular dependencies
+                foreign_keys[field_name] = field.remote_field.model
+        elif isinstance(field, related.ManyToManyField):
+            many_to_many[field_name] = field.remote_field.model
+        else:
+            if field.unique:
+                unique_fields.append(field_name)
             else:
-                if field.unique:
-                    unique_fields.append(field_name)
-                else:
-                    fields.append(field_name)
-        except FieldDoesNotExist:
-            pass
+                fields.append(field_name)
     if not unique_fields:
         unique_fields = ['pk']
     return fields, unique_fields, foreign_keys, many_to_many
@@ -90,11 +91,11 @@ def dump_item(fileds, model, item, unique_fields, fields, foreign_keys, many_to_
     for field in unique_fields:
         value = get_value(item, field)
         if value is not None:
-            unique_data[field] = unicode(value)
+            unique_data[field] = str(value)
     for field in fields:
         value = get_value(item, field)
         if value is not None:
-            data[field] = unicode(value)
+            data[field] = str(value)
     fk_var_name = 'fk_{}_{}'.format(model.__name__, item.pk)
     print_to_files(fileds, u'try: noop({fk_var_name})\nexcept NameError:\n'.format(fk_var_name=fk_var_name))
     lines_to_print_under_except = [
@@ -175,9 +176,12 @@ def print_file_headers(filed):
 class Command(BaseCommand):
     can_import_settings = True
 
+    def add_arguments(self, parser):
+        parser.add_argument('args', metavar='model_name', nargs='*')
+
     def handle(self, *args, **options):
         if len(args) < 1:
-            print '[model name]+'
+            print('[model name]+')
             return
 
         custom_models = __import__(django_settings.SITE + '.models', fromlist=['']).__dict__
@@ -191,23 +195,23 @@ class Command(BaseCommand):
 
         for model_name in args:
 
-            print '#', model_name
+            print('#', model_name)
 
             model = getattr(magi_models, model_name, None)
             model = custom_models.get(model_name, model)
             if not model:
-                print '  Model not found', model_name
+                print('  Model not found', model_name)
                 continue
 
             fields, unique_fields, foreign_keys, many_to_many = get_fields(model)
 
-            print ''
-            print '  Unique fields:', unique_fields
-            print '  Fields found:', fields
+            print('')
+            print('  Unique fields:', unique_fields)
+            print('  Fields found:', fields)
             if foreign_keys:
-                print '  Foreign keys found:', foreign_keys.keys()
+                print('  Foreign keys found:', foreign_keys.keys())
             if many_to_many:
-                print '  Many to many found:', many_to_many.keys()
+                print('  Many to many found:', many_to_many.keys())
 
             filename = u'/tmp/dump_{}.py'.format(model.__name__)
             filed = open(filename, 'w')
@@ -229,8 +233,8 @@ class Command(BaseCommand):
                     m2m_can_be_created[m2m] = all_fields
 
             if m2m_can_be_created:
-                print '  The following m2m may be created if needed:', m2m_can_be_created.keys()
-            print ''
+                print('  The following m2m may be created if needed:', m2m_can_be_created.keys())
+            print('')
 
             for item in model.objects.all().select_related(*foreign_keys.keys()).prefetch_related(*[
                     Prefetch(m2m, to_attr=u'all_{}'.format(m2m))
@@ -245,11 +249,11 @@ class Command(BaseCommand):
 
             filed.close()
 
-            print '  Total dumped:', total_dumped
-            print '  See file:', filename
-            print ''
+            print('  Total dumped:', total_dumped)
+            print('  See file:', filename)
+            print('')
 
 
         if global_filed:
             global_filed.close()
-            print 'Global file: ', global_filename
+            print('Global file: ', global_filename)

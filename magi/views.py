@@ -5,16 +5,15 @@ from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse, Http404
 from django.conf import settings as django_settings
-from django.contrib.auth.views import login as login_view
-from django.contrib.auth.views import logout as logout_view
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth import authenticate, login as login_action
 from django.contrib.admin.utils import NestedObjects
-from django.utils.translation import ugettext_lazy as _, get_language, activate as translation_activate
+from django.utils.translation import gettext_lazy as _, get_language, activate as translation_activate
 from django.utils.formats import date_format
-from django_translated import t
+from .django_translated import t
 from django.utils.safestring import mark_safe
 from django.core.exceptions import PermissionDenied, ObjectDoesNotExist
-from django.utils.http import urlquote
+from urllib.parse import quote as urlquote
 from django.utils import timezone
 from django.db.models import Count, Prefetch, Q
 from magi.middleware.httpredirect import HttpRedirectException
@@ -222,18 +221,17 @@ def login(request):
             'title': title(context) if callable(title) else title,
             'url': u'/you/',
         }]
-    return login_view(
-        request,
+    return LoginView.as_view(
         authentication_form=LoginForm,
         template_name='pages/login.html',
         extra_context=context,
-    )
+    )(request)
 
 def logout(request):
-    return logout_view(request, next_page='/')
+    return LogoutView.as_view(next_page='/')(request)
 
 def signup(request, context):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         redirectToProfile(request)
     if request.method == "POST":
         form = CreateUserForm(request.POST, request=request)
@@ -325,7 +323,7 @@ def indexExtraContext(context):
         if logo_per_language:
             context['site_logo'] = staticImageURL(logo_per_language)
 
-    if context['request'].user.is_authenticated():
+    if context['request'].user.is_authenticated:
         # 'Tis the season
         if isValueInAnyCurrentSeason('site_logo_when_logged_in'):
             context['site_logo'] = staticImageURL(getRandomValueInCurrentSeasons(
@@ -343,7 +341,7 @@ def indexExtraContext(context):
         characters_birthday_today = getCharactersBirthdayToday()
 
         can_preview = (django_settings.DEBUG
-                       or (context['request'].user.is_authenticated()
+                       or (context['request'].user.is_authenticated
                            and context['request'].user.hasPermission('list_homepage_arts')))
 
         if can_preview:
@@ -385,7 +383,7 @@ def indexExtraContext(context):
 
         # 1 chance out of 5 to get a random art of 1 of your favorite characters
         elif (RANDOM_ART_FOR_CHARACTER
-            and context['request'].user.is_authenticated()
+            and context['request'].user.is_authenticated
             and context['request'].user.preferences.favorite_characters
             and random.randint(0, 5) == 5):
             character_id = random.choice(context['request'].user.preferences.favorite_characters)
@@ -428,8 +426,8 @@ def indexExtraContext(context):
 
         # When a foreground is provided but no background,
         # use a random background in HOMEPAGE_BACKGROUNDS
-        if (context['art'].has_key('foreground_url')
-            and not context['art'].has_key('url')
+        if ('foreground_url' in context['art']
+            and 'url' not in context['art']
             and HOMEPAGE_BACKGROUNDS):
 
             background = None
@@ -443,7 +441,7 @@ def indexExtraContext(context):
                 background = random.choice(HOMEPAGE_BACKGROUNDS)
 
             context['art']['url'] = background['image']
-            if background.has_key('hd_image'):
+            if 'hd_image' in background:
                 context['art']['hd_url'] = background['hd_image']
 
         # Side of art
@@ -459,7 +457,7 @@ def indexExtraContext(context):
 def index(request):
     context = getGlobalContext(request)
     if (context.get('launch_date', None)
-        and not request.user.is_authenticated()
+        and not request.user.is_authenticated
         or not request.user.hasPermission('access_site_before_launch')):
         raise HttpRedirectException('/prelaunch/')
     indexExtraContext(context)
@@ -559,7 +557,7 @@ def about(request, context):
                 staff_member.stats[group] = []
                 if stats:
                     for stat in stats:
-                        if isinstance(stat['model'], basestring):
+                        if isinstance(stat['model'], str):
                             model = getattr(models, stat['model'])
                         else:
                             model = stat['model']
@@ -577,7 +575,7 @@ def about(request, context):
                             staff_member.stats[group].append(
                                 stat['template'](total)
                                 if callable(stat['template'])
-                                else mark_safe(unicode(stat['template']).format(total=u'<strong>{}</strong>'.format(total)))
+                                else mark_safe(str(stat['template']).format(total=u'<strong>{}</strong>'.format(total)))
                             )
                 settings = staff_member.preferences.t_settings_per_groups.get(group, None)
                 if settings:
@@ -662,7 +660,7 @@ def settings(request, context):
     context['alert_reputation_title'] = _('You are not allowed to send private messages.')
     context['alert_reputation_message'] = _('Take some time to play around {site_name} to unlock this feature!').format(site_name=context['t_site_name'])
     context['blocked_users_sentence'] = _('Block {username}').format(username=_('Users').lower())
-    context['add_custom_link_sentence'] = _(u'Add {thing}').format(thing=unicode(_('Custom link')).lower())
+    context['add_custom_link_sentence'] = _(u'Add {thing}').format(thing=str(_('Custom link')).lower())
     context['consider_donating_sentence'] = _('If you like {site_name}, please consider donating').format(
         site_name=getSiteName())
 
@@ -874,10 +872,10 @@ def settings(request, context):
             thing = markSafeFormat(
                 u'<a href="{url}">{title}</a>',
                 url=report.reported_thing_item_url,
-                title=unicode(report).lower(),
+                title=str(report).lower(),
             )
         else:
-            thing = unicode(report).lower()
+            thing = str(report).lower()
         if report.is_suggestededit:
             if report.status == 'Deleted':
                 continue
@@ -919,7 +917,7 @@ def settings(request, context):
             'title': _('Background'),
             'extra_settings': {
                 'modal': 'true',
-	        'modal-text': jsv(SHOW_BACKGROUND_NAME_ON_SELECTION),
+                'modal-text': jsv(SHOW_BACKGROUND_NAME_ON_SELECTION),
             },
         },
     }
@@ -1012,7 +1010,7 @@ def map(request, context):
         'https://maps.googleapis.com/maps/api/js?key=AIzaSyDHtAPFTmOCQZrKSjZlIeoZrZYLJjKLupE',
         'oms.min',
     ]
-    if request.user.is_authenticated() and request.user.preferences.latitude:
+    if request.user.is_authenticated and request.user.preferences.latitude:
         context['center'] = {
             'latitude': request.user.preferences.latitude,
             'longitude': request.user.preferences.longitude,
@@ -1205,7 +1203,7 @@ def whatwillbedeleted(request, context, thing, thing_id):
     context['show_small_title'] = False
 
 def moderatereport(request, report, action):
-    if not request.user.is_authenticated() or request.method != 'POST':
+    if not request.user.is_authenticated or request.method != 'POST':
         raise PermissionDenied()
     queryset = models.Report.objects.select_related('owner', 'owner__preferences')
     if not request.user.hasPermission('moderate_own_reports'):
@@ -1264,7 +1262,7 @@ def moderatereport(request, report, action):
         if report.owner:
             translation_activate(report.owner.preferences.language if report.owner.preferences.language else 'en')
             if report.is_suggestededit:
-                context['sentence'] = unicode(_('The edit you suggested has been reviewed by a database maintainer and the {thing} has been edited accordingly. Thank you so much for your help!')).format(thing=_(report.reported_thing_title))
+                context['sentence'] = str(_('The edit you suggested has been reviewed by a database maintainer and the {thing} has been edited accordingly. Thank you so much for your help!')).format(thing=_(report.reported_thing_title))
                 subject = _(u'Thank you for suggesting this edit!')
             else:
                 context['sentence'] = _(u'This {thing} you reported has been reviewed by a moderator and {verb}. Thank you so much for your help!').format(thing=_(report.reported_thing_title), verb=_(u'edited'))
@@ -1273,7 +1271,7 @@ def moderatereport(request, report, action):
             context['show_donation'] = True
             context['subject'] = u'{} {}'.format(
                 SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                unicode(subject.format(thing=_(report.reported_thing_title))),
+                str(subject.format(thing=_(report.reported_thing_title))),
             )
             send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         # Notify owner
@@ -1287,7 +1285,7 @@ def moderatereport(request, report, action):
             context['show_donation'] = False
             context['subject'] = u'{} {}'.format(
                 SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                unicode(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'edited'))),
+                str(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'edited'))),
             )
             send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         report.save()
@@ -1312,7 +1310,7 @@ def moderatereport(request, report, action):
                 context['show_donation'] = True
                 context['subject'] = u'{} {}'.format(
                     SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                    unicode(_(u'Thank you for reporting this {thing}').format(thing=_(report.reported_thing_title))),
+                    str(_(u'Thank you for reporting this {thing}').format(thing=_(report.reported_thing_title))),
                 )
                 send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         # Notify owner
@@ -1323,7 +1321,7 @@ def moderatereport(request, report, action):
             context['show_donation'] = False
             context['subject'] = u'{} {}'.format(
                 SITE_NAME_PER_LANGUAGE.get(get_language(), SITE_NAME),
-                unicode(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'deleted'))),
+                str(_(u'Your {thing} has been {verb}').format(thing=_(report.reported_thing_title), verb=_(u'deleted'))),
             )
             send_email(context['subject'], template_name='report', to=[context['user'].email], context=context)
         moderated_reports = [a_report.pk for a_report in all_reports]
@@ -1364,7 +1362,7 @@ def markallnotificationsread(request):
     raise HttpRedirectException(u'/notifications/?marked_read={}'.format(read))
 
 def me(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         raise HttpRedirectException(request.user.http_item_url)
     raise HttpRedirectException('/signup/')
 
@@ -1417,7 +1415,7 @@ def likeactivity(request, context, pk):
         activity.likes.add(request.user)
         activity.update_cache('total_likes')
         activity.save()
-        pushNotification(activity.owner, 'like-archive' if activity.archived_by_owner else 'like', [unicode(request.user), unicode(activity)], url_values=[str(activity.id), tourldash(unicode(activity))], image=activity.image)
+        pushNotification(activity.owner, 'like-archive' if activity.archived_by_owner else 'like', [str(request.user), str(activity)], url_values=[str(activity.id), tourldash(str(activity))], image=activity.image)
         return {
             'total_likes': activity.total_likes + 2,
             'result': 'liked',
@@ -1463,7 +1461,7 @@ def archiveactivity(request, context, pk):
 
 def unarchiveactivity(request, context, pk):
     by_staff = False
-    if not request.user.is_authenticated() or request.method != 'POST':
+    if not request.user.is_authenticated or request.method != 'POST':
         raise PermissionDenied()
     activity = get_object_or_404(models.Activity.objects.select_related('archived_by_staf'), pk=pk)
     if activity.is_owner(request.user):
@@ -1491,7 +1489,7 @@ def unarchiveactivity(request, context, pk):
     }
 
 def bumpactivity(request, context, pk):
-    if (not request.user.is_authenticated() or request.method != 'POST'
+    if (not request.user.is_authenticated or request.method != 'POST'
         or not request.user.hasPermission('manipulate_activities')):
         raise PermissionDenied()
     activity = get_object_or_404(models.Activity, pk=pk)
@@ -1502,7 +1500,7 @@ def bumpactivity(request, context, pk):
     }
 
 def drownactivity(request, context, pk):
-    if (not request.user.is_authenticated() or request.method != 'POST'
+    if (not request.user.is_authenticated or request.method != 'POST'
         or not request.user.hasPermission('manipulate_activities')):
         raise PermissionDenied()
     activity = get_object_or_404(models.Activity, pk=pk)
@@ -1515,7 +1513,7 @@ def drownactivity(request, context, pk):
     }
 
 def markactivitystaffpick(request, context, pk):
-    if (not request.user.is_authenticated() or request.method != 'POST'
+    if (not request.user.is_authenticated or request.method != 'POST'
         or 'staff' not in ACTIVITY_TAGS.keys()
         or not request.user.hasPermission('mark_activities_as_staff_pick')):
         raise PermissionDenied()
@@ -1526,14 +1524,14 @@ def markactivitystaffpick(request, context, pk):
         'result': {
             'staff-picks': True,
             'tags': {
-                k: unicode(v)
+                k: str(v)
                 for k, v in activity.t_tags.items()
             },
         },
     }
 
 def removeactivitystaffpick(request, context, pk):
-    if (not request.user.is_authenticated() or request.method != 'POST'
+    if (not request.user.is_authenticated or request.method != 'POST'
         or 'staff' not in ACTIVITY_TAGS.keys()
         or not request.user.hasPermission('mark_activities_as_staff_pick')):
         raise PermissionDenied()
@@ -1544,14 +1542,14 @@ def removeactivitystaffpick(request, context, pk):
         'result': {
             'staff-picks': False,
             'tags': {
-                k: unicode(v)
+                k: str(v)
                 for k, v in activity.t_tags.items()
             },
         },
     }
 
 def follow(request, context, username):
-    if not request.user.is_authenticated() or request.method != 'POST' or request.user.username == username:
+    if not request.user.is_authenticated or request.method != 'POST' or request.user.username == username:
         raise PermissionDenied()
     user = get_object_or_404(models.User.objects.extra(select={
         'followed': 'SELECT COUNT(*) FROM magi_userpreferences_following WHERE userpreferences_id = {} AND user_id = auth_user.id'.format(request.user.preferences.id),
@@ -1565,8 +1563,8 @@ def follow(request, context, username):
         pushNotification(
             user,
             'follow',
-            [unicode(request.user)],
-            url_values=[str(request.user.id), unicode(request.user)],
+            [str(request.user)],
+            url_values=[str(request.user.id), str(request.user)],
             image=request.user.image_url,
         )
         return {
@@ -1755,7 +1753,7 @@ def translations_check(request, context):
             old_lang = get_language()
             for lang, verbose in LANGUAGES_DICT.items():
                 translation_activate(lang)
-                terms.append((lang, verbose, unicode(_(form.cleaned_data['term']))))
+                terms.append((lang, verbose, str(_(form.cleaned_data['term']))))
                 translation_activate(old_lang)
     else:
         form = TranslationCheckForm()
@@ -1788,7 +1786,7 @@ def translations_check(request, context):
             translation_activate(language)
             # Check template variables with {}
             for term in nameless_template_strings:
-                translation = unicode(_(term))
+                translation = str(_(term))
                 if term.count('{}') != translation.count('{}'):
                     translation_errors.append([
                         language,
@@ -1797,7 +1795,7 @@ def translations_check(request, context):
                     ])
             # Check old style templates
             for term, variables in old_style_template_strings.items():
-                translation = unicode(_(term))
+                translation = str(_(term))
                 language_variables = sorted(oldStyleTemplateVariables(translation))
                 if language_variables != variables:
                     translation_errors.append([
@@ -1807,7 +1805,7 @@ def translations_check(request, context):
                     ])
             # Check template variables with {name}
             for term, variables in template_strings.items():
-                translation = unicode(_(term))
+                translation = str(_(term))
                 try:
                     language_variables = sorted(templateVariables(translation))
                 except ValueError:
@@ -1980,7 +1978,7 @@ def handler500(request):
         'error_details': mark_safe('If the problem persists, please <a href="/about/#contact">contact us</a>.'),
     })
 
-def handler403(request):
+def handler403(request, exception=None):
     return render(request, 'pages/error.html', {
         'error_code': 403,
         'page_title': 'Permission denied',
@@ -1994,7 +1992,7 @@ def adventcalendar(request, context, day=None):
     today = datetime.date.today()
     days_opened = request.user.preferences.extra.get('advent_calendar{}'.format(today.year), '').split(',')
     context['calendar'] = OrderedDict([
-        (unicode(i_day), unicode(i_day) in days_opened)
+        (str(i_day), str(i_day) in days_opened)
         for i_day in range(1, 25)
     ])
     if day and day in context['calendar']:
@@ -2054,7 +2052,7 @@ def adventcalendar(request, context, day=None):
             context['image'] = None
 
 def endaprilfool(request, context):
-    if getEventStatus((03, 31), (04, 03)) != 'current':
+    if getEventStatus((3, 31), (4, 3)) != 'current':
         raise PermissionDenied()
     badge_image = getattr(django_settings, 'SEASONAL_SETTINGS', {}).get('aprilfools', {}).get('extra', {}).get('badge_image', None)
     if not badge_image:

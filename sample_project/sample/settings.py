@@ -103,8 +103,8 @@ SITE_IMAGE = 'sample.png'
 #     # Limited
 #     ('SomeEvent', {
 #         'translation': _('Happy event!'),
-#         'start_date': datetime.datetime(2021, 11, 23, tzinfo=timezone.utc),
-#         'end_date': datetime.datetime(2021, 12, 23, tzinfo=timezone.utc),
+#         'start_date': datetime.datetime(2021, 11, 23, tzinfo=datetime.timezone.utc),
+#         'end_date': datetime.datetime(2021, 12, 23, tzinfo=datetime.timezone.utc),
 #     }),
 # ] + DEFAULT_ACTIVITY_TAGS
 

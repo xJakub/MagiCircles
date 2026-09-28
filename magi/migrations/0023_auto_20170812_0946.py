@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activity',
             name='i_language',
-            field=models.CharField(max_length=4, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'fr', 'French'), (b'de', 'German'), (b'it', 'Italian'), (b'ru', 'Russian')]),
+            field=models.CharField(max_length=4, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('de', 'German'), ('it', 'Italian'), ('ru', 'Russian')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userpreferences',
             name='i_language',
-            field=models.CharField(max_length=10, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'fr', 'French'), (b'de', 'German'), (b'it', 'Italian'), (b'ru', 'Russian')]),
+            field=models.CharField(max_length=10, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('fr', 'French'), ('de', 'German'), ('it', 'Italian'), ('ru', 'Russian')]),
             preserve_default=True,
         ),
     ]

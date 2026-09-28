@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userimage',
             name='_thumbnail_image',
-            field=models.ImageField(null=True, upload_to=magi.utils.uploadThumb(b'user_images')),
+            field=models.ImageField(null=True, upload_to=magi.utils.uploadThumb('user_images')),
             preserve_default=True,
         ),
         migrations.AlterField(

@@ -1,8 +1,8 @@
 from __future__ import division
-import math, string
+import math, string, inspect
 from collections import OrderedDict
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from magi.middleware.httpredirect import HttpRedirectException
 from django.shortcuts import render
 from django.http import Http404
@@ -43,7 +43,7 @@ from magi.forms import ConfirmDelete, filter_ids
 def _redirect_on_high_traffic(view, request, ajax=False):
     if (getattr(django_settings, 'HIGH_TRAFFIC', False)
         and view.disable_on_high_traffic
-        and not request.user.is_authenticated()):
+        and not request.user.is_authenticated):
         raise HttpRedirectException(u'{}/hightraffic/'.format('/ajax' if ajax else ''))
 
 def _get_share_image(context, collection_view, item=None):
@@ -109,7 +109,7 @@ def item_view(request, name, collection, pk=None, reverse=None, ajax=False, item
     context['item'].request = request
     collection.item_view.check_owner_permissions(request, context, context['item'])
 
-    if request.user.is_authenticated() and collection.blockable:
+    if request.user.is_authenticated and collection.blockable:
         # Blocked
         if context['item'].owner_id in request.user.preferences.cached_blocked_ids:
             if ajax:
@@ -265,7 +265,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
 
     if (shortcut_url == ''
         and context.get('launch_date', None)
-        and (not request.user.is_authenticated()
+        and (not request.user.is_authenticated
              or not request.user.hasPermission('access_site_before_launch'))):
         raise HttpRedirectException('/prelaunch/')
 
@@ -429,7 +429,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
         and ((collection.list_view.filter_form
               and filters['ordering'] in dict(
                   getattr(collection.list_view.filter_form, 'ordering_fields', [])))
-             or (request.user.is_authenticated()
+             or (request.user.is_authenticated
                  and request.user.hasPermission('order_by_any_field')))):
         ordering_fields = filters['ordering'].split(',')
         is_reverse = bool(filters.get('reverse_order', False))
@@ -616,7 +616,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
     if shortcut_url != '':
         if 'filter_form' in context:
             filters_labels = [
-                unicode(field.label).lower()
+                str(field.label).lower()
                 for field_name, field in context['filter_form'].fields.items()
                 if (field.label and field_name not in [
                         'search', 'ordering', 'reverse_order',
@@ -726,7 +726,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
 
         # Share after done adding
         context['share_collection_sentence'] = _('Share your {things}!').format(
-            things=unicode(collection.plural_title).lower())
+            things=str(collection.plural_title).lower())
         context['after_template'] = 'include/afterGetStarted'
 
     # Top buttons
@@ -822,7 +822,7 @@ def list_view(request, name, collection, ajax=False, extra_filters={}, shortcut_
 
         # If the user blocked whoever owns this item, it will be hidden with a button to unblock
         # If the user was blocked by whoever owns this item, it will be hidden and the user won't know
-        if request.user.is_authenticated() and collection.blockable:
+        if request.user.is_authenticated and collection.blockable:
             if item.owner_id in request.user.preferences.cached_blocked_ids:
                 item.blocked = True
                 try:
@@ -912,7 +912,7 @@ def add_view(request, name, collection, type=None, ajax=False, shortcut_url=None
         formClass = collection.types[type].get('form_class', collection.add_view.form_class)
     else:
         formClass = collection.add_view.form_class
-    if str(_type(formClass)) == '<type \'instancemethod\'>':
+    if inspect.ismethod(formClass):
         formClass = formClass(request, context)
     if request.method in ['GET', 'HEAD']:
         form = formClass(request=request, ajax=ajax, collection=collection, allow_next=collection.add_view.allow_next) if not with_types else formClass(request=request, ajax=ajax, collection=collection, type=type, allow_next=collection.add_view.allow_next)
@@ -965,7 +965,7 @@ def add_view(request, name, collection, type=None, ajax=False, shortcut_url=None
             getattr(form, 'beforefield', ''), HTMLAlert(
                 message=_('Make sure the {thing} you\'re about to add doesn\'t already exist.').format(
                     thing=_(collection.title.lower())),
-                button={ 'url': context['list_url'], 'verbose': unicode(collection.plural_title) },
+                button={ 'url': context['list_url'], 'verbose': str(collection.plural_title) },
             )))
 
     # Title and prefixes
@@ -1055,10 +1055,10 @@ def edit_view(request, name, collection, pk, extra_filters={}, ajax=False, short
         formClass = collection.types[type].get('form_class', collection.edit_view.form_class)
     else:
         formClass = collection.edit_view.form_class
-    if str(_type(formClass)) == '<type \'instancemethod\'>':
+    if inspect.ismethod(formClass):
         formClass = formClass(request, context)
     allowDelete = collection.edit_view.allow_delete
-    if str(_type(allowDelete)) == '<type \'instancemethod\'>':
+    if inspect.ismethod(allowDelete):
         allowDelete = allowDelete(instance, request, context)
     allowDelete = not context['is_translate'] and allowDelete and 'disable_delete' not in request.GET
     # Delete form
@@ -1132,13 +1132,13 @@ def edit_view(request, name, collection, pk, extra_filters={}, ajax=False, short
 
     if allowDelete:
         formDelete.submit_title = instance.delete_sentence
-        formDelete.form_title = u'{}: {}'.format(instance.delete_sentence, unicode(instance))
+        formDelete.form_title = u'{}: {}'.format(instance.delete_sentence, str(instance))
 
         # Alert
         formDelete.beforefields = mark_safe(u'{}{}'.format(
             getattr(form, 'beforefield', ''), HTMLAlert(
                 type='danger',
-                message=unicode(_('You can\'t cancel this action afterwards.')),
+                message=str(_('You can\'t cancel this action afterwards.')),
             )))
 
         if 'js_variables' not in context or not context['js_variables']:

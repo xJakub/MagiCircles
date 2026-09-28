@@ -2,7 +2,7 @@
 import datetime, string
 from collections import OrderedDict
 from django.conf import settings as django_settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from magi.utils import (
     ALERT_TEMPLATE,
     ALERT_BUTTON_TEMPLATE,
@@ -170,10 +170,10 @@ class MagiDisplay(object):
     @property
     def valid_parameters(self):
         return (
-            self.PARAMETERS.keys()
+            list(self.PARAMETERS.keys())
             + self.REQUIRED_PARAMETERS
-            + self.OPTIONAL_PARAMETERS.keys()
-            + self.INTERNAL_PARAMETERS.keys()
+            + list(self.OPTIONAL_PARAMETERS.keys())
+            + list(self.INTERNAL_PARAMETERS.keys())
         )
 
     ############################################################
@@ -184,8 +184,8 @@ class MagiDisplay(object):
         is_valid_display_value, parameters = self.to_parameters(item, value, kwargs_parameters)
         if not is_valid_display_value:
             if django_settings.DEBUG:
-                print '[Warning] Invalid value was given to display class {} for field {}'.format(
-                    self.__class__.__name__, parameters.field_name)
+                print('[Warning] Invalid value was given to display class {} for field {}'.format(
+                    self.__class__.__name__, parameters.field_name))
             return parameters.original_value
         if not getattr(self, 'template', None):
             return parameters.display_value
@@ -389,7 +389,7 @@ class MagiDisplay(object):
                 parameters_per_item.update(extra_parameters_per_item)
             # Prepare parameters templates
             parameters_templates_per_item = parameters_templates.copy()
-            for added_parameter_name in [ 'i', 'key', 'value' ] + extra_parameters_per_item.keys():
+            for added_parameter_name in [ 'i', 'key', 'value' ] + list(extra_parameters_per_item.keys()):
                 parameters_templates_per_item[added_parameter_name] = self.get_parameter_template(
                     added_parameter_name, parameters_per_item[added_parameter_name],
                     parameters_per_item, parameters_templates_per_item,
@@ -450,7 +450,7 @@ class _MagiDisplayText(MagiDisplay):
     def to_display_value(self, value, parameters):
         if isMarkedSafe(value):
             return value
-        return unicode(value)
+        return str(value)
 
     def to_parameters_extra(self, parameters):
         parameters.text_image_alt = parameters.text_image_alt or parameters.verbose_name
@@ -474,7 +474,7 @@ class _MagiDisplayLongText(MagiDisplay):
     def to_display_value(self, value, parameters):
         if isMarkedSafe(value):
             return value
-        return unicode(value)
+        return str(value)
 
     template = u'<div class="long-text-value">{display_value}</div>'
 
@@ -502,10 +502,10 @@ class _MagiDisplayTextWithLink(MagiDisplay):
     def to_display_value(self, value, parameters):
         if isMarkedSafe(value):
             return value
-        return unicode(value)
+        return str(value)
 
     def to_parameters_extra(self, parameters):
-        parameters.ajax_link_title = parameters.ajax_link_title or unicode(parameters.display_value)
+        parameters.ajax_link_title = parameters.ajax_link_title or str(parameters.display_value)
         parameters.image_for_link = parameters.image_for_link or parameters.image
 
     template = u"""

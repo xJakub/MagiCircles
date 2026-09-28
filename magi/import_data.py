@@ -1,5 +1,6 @@
 from __future__ import print_function
 import requests, json, os.path
+from functools import reduce
 from django.conf import settings as django_settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q, ImageField, Model
@@ -220,8 +221,8 @@ def loadJsonAPIPage(url, parameters=None, local=False, local_file_name='tmp', re
         log_function('')
         return None
     if page_number == 0:
-        f = open('{}.json'.format(local_file_name), 'w')
-        f.write(r.text.encode('utf-8'))
+        f = open('{}.json'.format(local_file_name), 'w', encoding='utf-8')
+        f.write(r.text)
         f.close()
     return r.json()
 
@@ -398,8 +399,8 @@ def default_find_existing_item(model, unique_together, unique_data, all_items):
         return None
     try:
         return model.objects.filter(reduce(
-            ((lambda qs, (k, v): qs & Q(**{k: v}))
-             if unique_together else (lambda qs, (k, v): qs | Q(**{k: v}))), [
+            ((lambda qs, kv: qs & Q(**{kv[0]: kv[1]}))
+             if unique_together else (lambda qs, kv: qs | Q(**{kv[0]: kv[1]}))), [
                      (k, v) for k, v in unique_data.items() if v is not None
              ], Q()
         ))[0]

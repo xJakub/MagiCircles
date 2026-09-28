@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activity',
             name='language',
-            field=models.CharField(max_length=4, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'ru', 'Russian'), (b'fr', 'French')]),
+            field=models.CharField(max_length=4, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('ru', 'Russian'), ('fr', 'French')]),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -26,13 +26,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userlink',
             name='type',
-            field=models.CharField(max_length=20, verbose_name='Platform', choices=[(b'facebook', b'Facebook'), (b'twitter', b'Twitter'), (b'reddit', b'Reddit'), (b'schoolidolu', b'School Idol Tomodachi'), (b'stardustrun', b'Stardust Run'), (b'frgl', b'fr.gl'), (b'line', b'LINE Messenger'), (b'tumblr', b'Tumblr'), (b'twitch', b'Twitch'), (b'steam', b'Steam'), (b'instagram', b'Instagram'), (b'youtube', b'YouTube'), (b'github', b'GitHub')]),
+            field=models.CharField(max_length=20, verbose_name='Platform', choices=[('facebook', 'Facebook'), ('twitter', 'Twitter'), ('reddit', 'Reddit'), ('schoolidolu', 'School Idol Tomodachi'), ('stardustrun', 'Stardust Run'), ('frgl', 'fr.gl'), ('line', 'LINE Messenger'), ('tumblr', 'Tumblr'), ('twitch', 'Twitch'), ('steam', 'Steam'), ('instagram', 'Instagram'), ('youtube', 'YouTube'), ('github', 'GitHub')]),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='userpreferences',
             name='language',
-            field=models.CharField(max_length=4, verbose_name='Language', choices=[(b'en', 'English'), (b'es', 'Spanish'), (b'ru', 'Russian'), (b'fr', 'French')]),
+            field=models.CharField(max_length=4, verbose_name='Language', choices=[('en', 'English'), ('es', 'Spanish'), ('ru', 'Russian'), ('fr', 'French')]),
             preserve_default=True,
         ),
     ]

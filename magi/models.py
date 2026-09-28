@@ -4,7 +4,8 @@ from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.contrib.auth.models import User
 from django.core import validators
-from django.utils.translation import ugettext_lazy as _, string_concat, get_language
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy as _, get_language
 from django.utils.safestring import mark_safe
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -139,7 +140,7 @@ class UserPreferences(MagiModel):
     birthdate = models.DateField(_('Birthdate'), blank=True, null=True)
     show_birthdate_year = models.BooleanField(_('Display your birthdate year'), default=True)
     default_tab = models.CharField(_('Default tab'), max_length=100, null=True)
-    location = models.CharField(_('Location'), max_length=200, null=True, blank=True, help_text=string_concat(_('The city you live in.'), ' ', _('It might take up to 24 hours to update your location on the map.')))
+    location = models.CharField(_('Location'), max_length=200, null=True, blank=True, help_text=format_lazy('{}{}{}', _('The city you live in.'), ' ', _('It might take up to 24 hours to update your location on the map.')))
 
     LOCATION_ON_CHANGE = locationOnChange
 
@@ -300,7 +301,7 @@ class UserPreferences(MagiModel):
     def get_localized_color(self, color):
         if color and USER_COLORS:
             try:
-                return (_(localized) for (name, localized, __, __) in USER_COLORS if unicode(name) == color).next()
+                return (_(localized) for (name, localized, __, __) in USER_COLORS if str(name) == color).next()
             except: pass
         return ''
     @property
@@ -311,7 +312,7 @@ class UserPreferences(MagiModel):
     def get_hex_color(self, color):
         if color and USER_COLORS:
             try:
-                return (hex for (name, _, _, hex) in USER_COLORS if unicode(name) == color).next()
+                return (hex for (name, _, _, hex) in USER_COLORS if str(name) == color).next()
             except: pass
         return COLOR
     @property
@@ -329,7 +330,7 @@ class UserPreferences(MagiModel):
     def get_css_color(self, color):
         if color and USER_COLORS:
             try:
-                return (css_color for (name, _, css_color, _) in USER_COLORS if unicode(name) == color).next()
+                return (css_color for (name, _, css_color, _) in USER_COLORS if str(name) == color).next()
             except: pass
         return 'main'
 
@@ -416,7 +417,7 @@ class UserPreferences(MagiModel):
             }).count()) for collection_name, collection in [
                 (collection_name, getMagiCollection(collection_name))
                 for collection_name in RAW_CONTEXT['collections_in_profile_tabs']
-            ] + RAW_CONTEXT['collectible_collections'].get('owner', {}).items()
+            ] + list(RAW_CONTEXT['collectible_collections'].get('owner', {}).items())
         })
 
         return tabs_with_content
@@ -503,8 +504,8 @@ class UserPreferences(MagiModel):
 
 class UserLink(BaseMagiModel):
     alphanumeric = validators.RegexValidator(r'^[0-9a-zA-Z\-_\. /]*$', 'Only alphanumeric and - _ characters are allowed.')
-    owner = models.ForeignKey(User, related_name='links')
-    value = models.CharField(string_concat(_('Username'), '/', _('ID')), max_length=64, help_text=_('Write your username only, no URL.'), validators=[alphanumeric])
+    owner = models.ForeignKey(User, related_name='links', on_delete=models.CASCADE)
+    value = models.CharField(format_lazy('{}{}{}', _('Username'), '/', _('ID')), max_length=64, help_text=_('Write your username only, no URL.'), validators=[alphanumeric])
 
     TYPE_CHOICES = [
         ('twitter', _('Twitter')),
@@ -596,7 +597,7 @@ class UserLink(BaseMagiModel):
 class StaffConfiguration(MagiModel):
     collection_name = 'staffconfiguration'
 
-    owner = models.ForeignKey(User, related_name='added_configurations')
+    owner = models.ForeignKey(User, related_name='added_configurations', on_delete=models.CASCADE)
     OWNER_TABLE_HEADER = 'Last updated by'
     key = models.CharField('Key', max_length=100)
     verbose_key = models.CharField('Name', max_length=100)
@@ -627,7 +628,7 @@ class StaffConfiguration(MagiModel):
             return None
         return self.value
 
-    def __unicode__(self):
+    def __str__(self):
         return self.verbose_key
 
     class Meta:
@@ -650,8 +651,7 @@ class StaffDetails(MagiModel):
 
     image = models.ImageField(
         _('Image'), upload_to=uploadToRandom('staff_photos'), null=True, blank=True,
-        help_text='Photograph of yourself. Real life photos look friendlier when we introduce the team. If you really don\'t want to show your face, you can use an avatar, but we prefer photos :)',
-    )
+        help_text='Photograph of yourself. Real life photos look friendlier when we introduce the team. If you really don\'t want to show your face, you can use an avatar, but we prefer photos :)', max_length=255,)
     description = models.TextField('Self introduction', help_text='You can use markdown to add links.', null=True)
 
     favorite_food = models.CharField(max_length=100, null=True)
@@ -805,7 +805,7 @@ class StaffDetails(MagiModel):
     def top_image(self):
         return self.image_url or self.owner.image_url
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{} staff details'.format(self.owner.username)
 
 ############################################################
@@ -816,7 +816,7 @@ class Activity(MagiModel):
 
     creation = models.DateTimeField(auto_now_add=True)
     last_bump = models.DateTimeField(db_index=True, null=True)
-    owner = models.ForeignKey(User, related_name='activities', db_index=True)
+    owner = models.ForeignKey(User, related_name='activities', db_index=True, on_delete=models.CASCADE)
     m_message = models.TextField(_('Message'), null=True)
 
     likes = models.ManyToManyField(User, related_name="liked_activities")
@@ -831,8 +831,8 @@ class Activity(MagiModel):
     TAGS_CHOICES = ACTIVITY_TAGS_CHOICES
     c_tags = models.TextField(_('Tags'), blank=True, null=True)
 
-    _original_image = models.ImageField(null=True, upload_to=uploadTiny('activities'))
-    image = models.ImageField(_('Image'), upload_to=uploadToRandom('activities'), null=True, blank=True, help_text=_('Only post official artworks, artworks you own, or fan artworks that are approved by the artist and credited.'))
+    _original_image = models.ImageField(null=True, upload_to=uploadTiny('activities'), max_length=255)
+    image = models.ImageField(_('Image'), upload_to=uploadToRandom('activities'), null=True, blank=True, help_text=_('Only post official artworks, artworks you own, or fan artworks that are approved by the artist and credited.'), max_length=255)
 
     archived_by_owner = models.BooleanField(default=False)
     archived_by_staff = models.ForeignKey(User, related_name='archived_activities', null=True, on_delete=models.SET_NULL)
@@ -846,7 +846,7 @@ class Activity(MagiModel):
         # If you're premium, the one month limit doesn't apply
         # Returns: (has_permissions, because_premium)
         a_month_ago = timezone.now() - datetime.timedelta(days=30)
-        if not user.is_authenticated() or not self.is_owner(user):
+        if not user.is_authenticated or not self.is_owner(user):
             return (False, False)
         if user.preferences.is_premium:
             return (True, True)
@@ -856,7 +856,7 @@ class Activity(MagiModel):
 
     def has_permissions_to_ghost_archive(self, user):
         # If you have the manipulate_activities permission
-        return (user.is_authenticated()
+        return (user.is_authenticated
                 and not self.is_owner(user)
                 and user.hasPermission('manipulate_activities'))
 
@@ -978,8 +978,8 @@ class Activity(MagiModel):
 
     m_description = property(lambda _s: _s.m_message)
 
-    def __unicode__(self):
-        return self.get_title() or unicode(_('Post'))
+    def __str__(self):
+        return self.get_title() or str(_('Post'))
 
     class Meta:
         verbose_name_plural = 'activities'
@@ -1043,7 +1043,7 @@ def getAllowedTags(
                 return False
         # Hidden by user
         if check_hidden_by_user:
-            if request and request.user.is_authenticated():
+            if request and request.user.is_authenticated:
                 if request.user.preferences.hidden_tags:
                     if request.user.preferences.hidden_tags.get(tag_name, False):
                         notAllowedReason(tag_name, tag, 'user', _CHOOSE_HIDDEN_TAGS_MESSAGE)
@@ -1120,7 +1120,7 @@ def updateCachedActivities(user_id):
 class Notification(MagiModel):
     collection_name = 'notification'
 
-    owner = models.ForeignKey(User, related_name='notifications', db_index=True)
+    owner = models.ForeignKey(User, related_name='notifications', db_index=True, on_delete=models.CASCADE)
     creation = models.DateTimeField(auto_now_add=True)
 
     MESSAGES = [
@@ -1195,7 +1195,7 @@ class Notification(MagiModel):
     def icon(self):
         return self.message_value('icon')
 
-    def __unicode__(self):
+    def __str__(self):
         return self.localized_message
 
     class Meta:
@@ -1210,7 +1210,7 @@ class Report(MagiModel):
     is_suggestededit = models.BooleanField(default=False, db_index=True)
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(User, related_name='reports', null=True)
+    owner = models.ForeignKey(User, related_name='reports', null=True, on_delete=models.CASCADE)
     reported_thing = models.CharField(max_length=300) # Collection name
     reported_thing_title = models.CharField(max_length=300) # Collection title in English
     reported_thing_id = models.PositiveIntegerField() # Pk
@@ -1305,9 +1305,9 @@ class Report(MagiModel):
     def edited_fields(self):
         return self.reported_thing_collection.suggest_edit_choices
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{title} #{id}'.format(
-            title=unicode(_(self.reported_thing_title)),
+            title=str(_(self.reported_thing_title)),
             id=self.reported_thing_id,
         )
 
@@ -1326,12 +1326,12 @@ BADGE_IMAGE_TINYPNG_SETTINGS = {
 class DonationMonth(MagiModel):
     collection_name = 'donate'
 
-    owner = models.ForeignKey(User, related_name='donation_month_created')
+    owner = models.ForeignKey(User, related_name='donation_month_created', on_delete=models.CASCADE)
     date = models.DateField(default=datetime.datetime.now)
     cost = models.FloatField(default=250)
     goal = DONATORS_GOAL
     donations = models.FloatField(default=0)
-    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'))
+    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'), max_length=255)
 
     tinypng_settings = {
         'image': BADGE_IMAGE_TINYPNG_SETTINGS,
@@ -1372,7 +1372,7 @@ class DonationMonth(MagiModel):
 
     @property
     def open_badge_sentence(self):
-        return _('Open {thing}').format(thing=unicode(_('Badge')).lower())
+        return _('Open {thing}').format(thing=str(_('Badge')).lower())
 
     @property
     def badge_sentence(self):
@@ -1380,8 +1380,8 @@ class DonationMonth(MagiModel):
             month=_(self.date.strftime('%B')),
         )
 
-    def __unicode__(self):
-        return unicode(self.date)
+    def __str__(self):
+        return str(self.date)
 
     class Meta:
         ordering = ['-date']
@@ -1393,15 +1393,15 @@ class Badge(MagiModel):
     ]
 
     date = models.DateField(default=datetime.datetime.now)
-    owner = models.ForeignKey(User, related_name='badges_created')
-    user = models.ForeignKey(User, related_name='badges', db_index=True)
-    donation_month = models.ForeignKey(DonationMonth, related_name='badges', null=True)
+    owner = models.ForeignKey(User, related_name='badges_created', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='badges', db_index=True, on_delete=models.CASCADE)
+    donation_month = models.ForeignKey(DonationMonth, related_name='badges', null=True, on_delete=models.CASCADE)
     name = models.CharField(_('Title'), max_length=50, null=True)
 
     m_description = models.TextField(_('Description'), null=True)
     _cache_description = models.TextField(null=True)
 
-    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'))
+    image = models.ImageField(_('Image'), upload_to=uploadItem('badges'), max_length=255)
     url = models.CharField(max_length=200, null=True)
     show_on_top_profile = models.BooleanField(default=False)
     show_on_profile = models.BooleanField(default=False)
@@ -1464,7 +1464,7 @@ class Badge(MagiModel):
             )
         return self.description
 
-    def __unicode__(self):
+    def __str__(self):
         return self.translated_name
 
     class Meta:
@@ -1476,12 +1476,12 @@ class Badge(MagiModel):
 class Prize(MagiModel):
     collection_name = 'prize'
 
-    owner = models.ForeignKey(User, related_name='added_prizes')
+    owner = models.ForeignKey(User, related_name='added_prizes', on_delete=models.CASCADE)
     name = models.CharField('Prize name', max_length=100)
-    image = models.ImageField('Prize image', upload_to=uploadItem('prize'))
-    image2 = models.ImageField('2nd image', upload_to=uploadItem('prize'), null=True, blank=True)
-    image3 = models.ImageField('3rd image', upload_to=uploadItem('prize'), null=True, blank=True)
-    image4 = models.ImageField('4th image', upload_to=uploadItem('prize'), null=True, blank=True)
+    image = models.ImageField('Prize image', upload_to=uploadItem('prize'), max_length=255)
+    image2 = models.ImageField('2nd image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)
+    image3 = models.ImageField('3rd image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)
+    image4 = models.ImageField('4th image', upload_to=uploadItem('prize'), null=True, blank=True, max_length=255)
     value = models.DecimalField('Value', null=True, help_text='in USD', max_digits=6, decimal_places=2)
     display_value = property(lambda _s: u'US ${}'.format(_s.value))
 
@@ -1520,7 +1520,7 @@ class Prize(MagiModel):
     def images_urls(self):
         return [ i for i in [self.image_url, self.image2_url, self.image3_url, self.image4_url] if i ]
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 ############################################################
@@ -1547,7 +1547,7 @@ class PrivateMessage(MagiModel):
             message += u'...'
         return message
 
-    def __unicode__(self):
+    def __str__(self):
         return self.message
 
 ############################################################
