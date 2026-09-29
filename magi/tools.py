@@ -491,6 +491,8 @@ def getCacheForFilterFormChoices():
             kept = []
             removed = []
             for choice, verbose in choices:
+                # ModelChoiceField choices yield ModelChoiceIteratorValue objects since Django 3.1
+                choice = getattr(choice, 'value', choice)
                 if choice == '':
                     continue
                 if filter_form.filter_queryset(queryset, { field_name: choice }, None).count():
