@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-import os, pkg_resources
+import os
+from importlib import resources
 from django.core.management.base import BaseCommand
 from django.conf import settings as django_settings
 from magi.settings import (
@@ -12,9 +13,8 @@ from magi.settings import (
 from magi.seasons import CSS_SETTINGS
 
 def generateLessColors(settings):
-    resource_package = 'magi'
-    resource_path = os.path.join('static', 'less', 'per-color-generator.less')
-    template = str(pkg_resources.resource_string(resource_package, resource_path))
+    template = resources.files('magi').joinpath(
+        'static', 'less', 'per-color-generator.less').read_text(encoding='utf-8')
 
     color = settings.get('color', COLOR)
     secondary_color = settings.get('secondary_color', SECONDARY_COLOR)
@@ -54,10 +54,9 @@ def generateStylesheets(name=None, settings={}):
     extra_local = ''
     extra_prod = ''
     if name:
-        resource_package = 'magi'
-        resource_path = os.path.join('static', 'less', '{}.less'.format(name))
         try:
-            magi_has_content = str(pkg_resources.resource_string(resource_package, resource_path))
+            magi_has_content = resources.files('magi').joinpath(
+                'static', 'less', '{}.less'.format(name)).read_text(encoding='utf-8')
         except IOError:
             magi_has_content = False
         local_path = os.path.join(
