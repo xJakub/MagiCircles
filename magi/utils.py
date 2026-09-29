@@ -12,7 +12,7 @@ import collections.abc
 from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 from django.conf import settings as django_settings
-from django.core.files.temp import NamedTemporaryFile
+from tempfile import NamedTemporaryFile
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import resolve
@@ -4737,7 +4737,7 @@ def shrinkImageFromData(data, filename, settings={}):
 
 def localImageToImageFile(path, return_data=False):
     try:
-        fd = open(path, 'r')
+        fd = open(path, 'rb')
     except IOError as e:
         if return_data:
             return None, None
