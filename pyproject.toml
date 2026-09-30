@@ -24,7 +24,7 @@ dependencies = [
     "django-oauth-toolkit==0.10.0",
     "django-recaptcha3==0.4.0",
     "django-ses==0.7.0",
-    "django-storages==1.5.0",
+    "django-storages>=1.14.6",
     "djangorestframework==3.14.0",
     "geopy==1.9.1",
     "python-dateutil==2.4.0",
