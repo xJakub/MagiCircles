@@ -2181,7 +2181,6 @@ def send_email(subject, template_name, to=[], context=None, from_email=django_se
     subject = subject.replace('\n', '').replace('\r', '')
     if not context:
         context = emailContext()
-    context = Context(context)
     plaintext = get_template('emails/' + template_name + '.txt').render(context)
     htmly = get_template('emails/' + template_name + '.html').render(context)
     email = EmailMultiAlternatives(subject, plaintext, from_email, to)
