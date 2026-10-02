@@ -39,7 +39,7 @@ def startswith(value, arg):
 
 @register.simple_tag
 def t(string):
-    return _(string)
+    return str(_(string))
 
 @register.simple_tag
 def format(string, **kwargs):
