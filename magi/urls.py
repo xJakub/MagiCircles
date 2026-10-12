@@ -116,7 +116,7 @@ collections_in_profile_tabs = []
 main_collections = []
 sub_collections = {}
 
-_verbose_re = '[\w.@+\-_]+'
+_verbose_re = r'[\w.@+\-_]+'
 
 ############################################################
 # Default enabled URLs (outside of collections + pages)
@@ -398,12 +398,12 @@ for collection in collections.values():
                         NAVBAR_ORDERING = new_ordering
     if collection.item_view.enabled:
         url_name = '{}_item'.format(collection.name)
-        urls.append(re_path(u'^{}/(?P<pk>\d+)[/]*$'.format(collection.name), views_collections.item_view, parameters, name=url_name))
-        urls.append(re_path(u'^{}/(?P<pk>\d+)[/]*$'.format(collection.plural_name), views_collections.item_view, parameters, name=url_name))
-        urls.append(re_path(u'^{}/(?P<pk>\d+)/{}[/]*$'.format(collection.name, _verbose_re), views_collections.item_view, parameters, name=url_name))
-        urls.append(re_path(u'^{}/(?P<pk>\d+)/{}[/]*$'.format(collection.plural_name, _verbose_re), views_collections.item_view, parameters, name=url_name))
+        urls.append(re_path(r'^{}/(?P<pk>\d+)[/]*$'.format(collection.name), views_collections.item_view, parameters, name=url_name))
+        urls.append(re_path(r'^{}/(?P<pk>\d+)[/]*$'.format(collection.plural_name), views_collections.item_view, parameters, name=url_name))
+        urls.append(re_path(r'^{}/(?P<pk>\d+)/{}[/]*$'.format(collection.name, _verbose_re), views_collections.item_view, parameters, name=url_name))
+        urls.append(re_path(r'^{}/(?P<pk>\d+)/{}[/]*$'.format(collection.plural_name, _verbose_re), views_collections.item_view, parameters, name=url_name))
         if collection.item_view.ajax:
-            urls.append(re_path(u'^ajax/{}/(?P<pk>\d+)/$'.format(collection.name), views_collections.item_view, ajax_parameters, name='{}_ajax'.format(url_name)))
+            urls.append(re_path(r'^ajax/{}/(?P<pk>\d+)/$'.format(collection.name), views_collections.item_view, ajax_parameters, name='{}_ajax'.format(url_name)))
         if collection.item_view.reverse_url:
             urls.append(re_path(u'^{}/(?P<reverse>{})[/]*$'.format(collection.name, _verbose_re), views_collections.item_view, parameters, name=url_name))
             urls.append(re_path(u'^{}/(?P<reverse>{})[/]*$'.format(collection.plural_name, _verbose_re), views_collections.item_view, parameters, name=url_name))
@@ -415,8 +415,8 @@ for collection in collections.values():
                 shortcut_parameters['pk'] = pk
                 urls.append(re_path(u'^{}[/]*$'.format(shortcut_url), views_collections.item_view, shortcut_parameters, name=url_name))
             else:
-                urls.append(re_path(u'^{}/(?P<pk>\d+)[/]*$'.format(shortcut_url), views_collections.item_view, parameters, name=url_name))
-                urls.append(re_path(u'^{}/(?P<pk>\d+)/{}[/]*$'.format(shortcut_url, _verbose_re), views_collections.item_view, parameters, name=url_name))
+                urls.append(re_path(r'^{}/(?P<pk>\d+)[/]*$'.format(shortcut_url), views_collections.item_view, parameters, name=url_name))
+                urls.append(re_path(r'^{}/(?P<pk>\d+)/{}[/]*$'.format(shortcut_url, _verbose_re), views_collections.item_view, parameters, name=url_name))
     if collection.add_view.enabled:
         url_name = '{}_add'.format(collection.name)
         if collection.types:
@@ -446,11 +446,11 @@ for collection in collections.values():
                 urls.append(re_path(u'^{}[/]*$'.format(shortcut_url), views_collections.add_view, shortcut_parameters, name=url_name))
     if collection.edit_view.enabled:
         url_name = '{}_edit'.format(collection.name)
-        urls.append(re_path(u'^{}/edit/(?P<pk>\d+|unique)/$'.format(collection.name), views_collections.edit_view, parameters, name=url_name))
-        urls.append(re_path(u'^{}/edit/(?P<pk>\d+|unique)/$'.format(collection.plural_name), views_collections.edit_view, parameters, name=url_name))
+        urls.append(re_path(r'^{}/edit/(?P<pk>\d+|unique)/$'.format(collection.name), views_collections.edit_view, parameters, name=url_name))
+        urls.append(re_path(r'^{}/edit/(?P<pk>\d+|unique)/$'.format(collection.plural_name), views_collections.edit_view, parameters, name=url_name))
         if collection.edit_view.ajax:
-            urls.append(re_path(u'^ajax/{}/edit/(?P<pk>\d+|unique)/$'.format(collection.name), views_collections.edit_view, ajax_parameters, name='{}_ajax'.format(url_name)))
-            urls.append(re_path(u'^ajax/{}/edit/(?P<pk>\d+|unique)/$'.format(collection.plural_name), views_collections.edit_view, ajax_parameters, name='{}_ajax'.format(url_name)))
+            urls.append(re_path(r'^ajax/{}/edit/(?P<pk>\d+|unique)/$'.format(collection.name), views_collections.edit_view, ajax_parameters, name='{}_ajax'.format(url_name)))
+            urls.append(re_path(r'^ajax/{}/edit/(?P<pk>\d+|unique)/$'.format(collection.plural_name), views_collections.edit_view, ajax_parameters, name='{}_ajax'.format(url_name)))
         for shortcut_url, pk in collection.edit_view.shortcut_urls:
             shortcut_parameters = parameters.copy()
             shortcut_parameters['shortcut_url'] = shortcut_url

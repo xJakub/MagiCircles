@@ -2658,7 +2658,7 @@ def fieldNameMatch(original_field_name, *field_names):
             return True
     return False
 
-NUMBER_AND_FLOAT_REGEX = '[-+]?[0-9]*\.?[0-9]+'
+NUMBER_AND_FLOAT_REGEX = r'[-+]?[0-9]*\.?[0-9]+'
 
 def makeTemplateFromString(string, regexes, variable_name='value'):
     """
@@ -2676,7 +2676,7 @@ def makeTemplateFromString(string, regexes, variable_name='value'):
     return string
 
 def matchesTemplate(template, string):
-    template = re.escape(template).replace('\{', '{').replace('\}', '}')
+    template = re.escape(template).replace(r'\{', '{').replace(r'\}', '}')
     if '{}' in template:
         regex = re.compile(template.format(*['(.+)'] * template.count('{}')))
         match = regex.match(string)
@@ -4573,7 +4573,7 @@ def PastOnlyValidator(value):
     if value > datetime.date.today():
         raise ValidationError(_('This date cannot be in the future.'), code='past_value')
 
-TIME_REGEX = re.compile('^(?:([01]?\d|2[0-3]):([0-5]?\d):)?([0-5]?\d)$')
+TIME_REGEX = re.compile(r'^(?:([01]?\d|2[0-3]):([0-5]?\d):)?([0-5]?\d)$')
 
 TimeValidator = RegexValidator(TIME_REGEX, TimeField.default_error_messages['invalid'], 'invalid')
 

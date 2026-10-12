@@ -18,7 +18,7 @@ RAW_CONTEXT = {
     'form': None,
 }
 
-_usernameRegexp = '[\w.@+-]+'
+_usernameRegexp = r'[\w.@+-]+'
 
 def _format_lazy(text, *args, **kwargs):
     return str(text).format(*args, **kwargs)
@@ -698,7 +698,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'title': _('Profile'),
         'icon': 'profile',
         'url_variables': [
-            ('pk', '\d+', lambda context: str(context['request'].user.id)),
+            ('pk', r'\d+', lambda context: str(context['request'].user.id)),
             ('username', _usernameRegexp, lambda context: context['request'].user.username),
         ],
         'navbar_link_list': 'you',
@@ -901,7 +901,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'navbar_link': False,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_form': True,
@@ -931,9 +931,9 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'permissions_required': ['translate_items'],
             'navbar_link': False,
             'url_variables': [
-                ('model_name', '\w+'),
-                ('field_name', '[\w_]+'),
-                ('language', '[\w\-]+'),
+                ('model_name', r'\w+'),
+                ('field_name', r'[\w_]+'),
+                ('language', r'[\w\-]+'),
             ],
             'show_title': True,
         },
@@ -944,8 +944,8 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'permissions_required': ['translate_items'],
             'navbar_link': False,
             'url_variables': [
-                ('model_name', '\w+'),
-                ('field_name', '[\w_]+'),
+                ('model_name', r'\w+'),
+                ('field_name', r'[\w_]+'),
             ],
             'show_title': True,
         },
@@ -1016,7 +1016,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': False,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'navbar_link': False,
@@ -1037,7 +1037,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'custom': False,
             'url_variables': [
                 ('key', '[^/]+'),
-                ('pk', '\d+'),
+                ('pk', r'\d+'),
             ],
             'authentication_required': True,
             'navbar_link': False,
@@ -1049,7 +1049,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'custom': False,
             'url_variables': [
                 ('key', '[^/]+'),
-                ('pk', '\d+'),
+                ('pk', r'\d+'),
             ],
             'authentication_required': True,
             'navbar_link': False,
@@ -1061,8 +1061,8 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'custom': False,
             'url_variables': [
                 ('key', '[^/]+'),
-                ('pk', '\d+'),
-                ('nth', '\d+'),
+                ('pk', r'\d+'),
+                ('nth', r'\d+'),
             ],
             'authentication_required': True,
             'navbar_link': False,
@@ -1087,7 +1087,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'custom': False,
             'url_variables': [
                 ('key', '[^/]+'),
-                ('nth', '\d+'),
+                ('nth', r'\d+'),
             ],
             'authentication_required': True,
             'navbar_link': False,
@@ -1098,7 +1098,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'as_json': True,
         'authentication_required': True,
@@ -1108,7 +1108,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1117,7 +1117,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1126,7 +1126,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1135,7 +1135,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1144,7 +1144,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1153,7 +1153,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1162,7 +1162,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'ajax': True,
         'custom': False,
         'url_variables': [
-            ('pk', '\d+'),
+            ('pk', r'\d+'),
         ],
         'authentication_required': True,
         'as_json': True,
@@ -1211,8 +1211,8 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'custom': False,
         'navbar_link': False,
         'url_variables': [
-            ('report', '\d+'),
-            ('action', '\w+'),
+            ('report', r'\d+'),
+            ('action', r'\w+'),
         ],
         'boilerplate': False,
         'one_of_permissions_required': ['moderate_reports', 'moderate_suggested_edits'],
@@ -1224,7 +1224,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'navbar_link': False,
         'url_variables': [
             ('thing', '.+'),
-            ('thing_id', '\d+'),
+            ('thing_id', r'\d+'),
         ],
     }),
     ('reportwhatwillbedeleted', {
@@ -1233,7 +1233,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
         'custom': False,
         'navbar_link': False,
         'url_variables': [
-            ('report', '\d+'),
+            ('report', r'\d+'),
         ],
         'permissions_required': ['moderate_reports'],
         'template': 'whatwillbedeleted',
@@ -1329,7 +1329,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'authentication_required': True,
             'navbar_link': False,
             'url_variables': [
-                ('day', '\d+'),
+                ('day', r'\d+'),
             ],
         },
         {
@@ -1344,7 +1344,7 @@ DEFAULT_ENABLED_PAGES = OrderedDict([
             'custom': False,
             'authentication_required': True,
             'url_variables': [
-                ('day', '\d+'),
+                ('day', r'\d+'),
             ],
         },
     ]),

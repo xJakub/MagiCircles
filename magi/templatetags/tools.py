@@ -93,7 +93,7 @@ def getattribute(value, arg):
         return getattr(value, arg)
     elif hasattr(value, 'has_key') and arg in value:
         return value[arg]
-    elif re.compile("^\d+$").match(str(arg)) and len(value) > int(arg):
+    elif re.compile(r"^\d+$").match(str(arg)) and len(value) > int(arg):
         return value[int(arg)]
     elif str(arg) in value:
         return value.get(arg)
