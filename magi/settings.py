@@ -937,7 +937,7 @@ _permissions_to_set = {
 now = timezone.now()
 launched = LAUNCH_DATE is None or (LAUNCH_DATE is not True and LAUNCH_DATE < now)
 for _group_name, _group in GROUPS:
-    for _permission, _details in _group.get('outside_permissions', {}).items():
+    for _permission, _details in list(_group.get('outside_permissions', {}).items()):
         if isinstance(_details, dict):
             if not _details.get('url', None):
                 _details['url'] = _permissions_to_set.get(_permission, None)
