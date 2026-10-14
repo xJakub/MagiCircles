@@ -5,8 +5,8 @@ from collections import OrderedDict
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse, Http404
 from django.conf import settings as django_settings
-from django.contrib.auth.views import LoginView, LogoutView
-from django.contrib.auth import authenticate, login as login_action
+from django.contrib.auth.views import LoginView
+from django.contrib.auth import authenticate, login as login_action, logout as logout_action
 from django.contrib.admin.utils import NestedObjects
 from django.utils.translation import gettext_lazy as _, get_language, activate as translation_activate
 from django.utils.formats import date_format
@@ -228,7 +228,8 @@ def login(request):
     )(request)
 
 def logout(request):
-    return LogoutView.as_view(next_page='/')(request)
+    logout_action(request)
+    raise HttpRedirectException('/')
 
 def signup(request, context):
     if request.user.is_authenticated:
