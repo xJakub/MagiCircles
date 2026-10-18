@@ -3107,16 +3107,10 @@ def _getFilterFieldNameOfRelatedItem(model, related_item_field_name, suffix=u'')
             suffix=clearJoin([ filter_field_name, suffix ], u'__'),
         )
     def _relation_direction_aware_filter_field_name():
-        # Since Django 1.8's relations refactor, both forward (ManyToManyDescriptor) and
-        # reverse (ReverseManyToOneDescriptor, etc.) accessors expose both .rel and .field,
-        # but they answer different questions depending on direction:
-        # - reverse accessor: .rel.field is the real FK/M2M field, defined on the *other*
-        #   model - .rel.field.name is what we want.
-        # - forward accessor: .rel.field is the field itself, defined on `model` - using
-        #   .rel.field.name here would just circularly return related_item_field_name back;
-        #   .field.related_query_name() is what we want instead.
+        # Forward relation (field defined on model, FK descriptors have no .rel): use the reverse query name
+        # Reverse relation: use the name of the field on the other model
         descriptor = getattr(model, related_item_field_name)
-        if descriptor.rel.field.model is model:
+        if not hasattr(descriptor, 'rel') or descriptor.rel.field.model is model:
             return descriptor.field.related_query_name()
         return descriptor.rel.field.name
     filter_field_name = failSafe(

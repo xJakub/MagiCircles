@@ -1114,7 +1114,10 @@ class MagiForm(forms.ModelForm):
                 for field_name in self.userimages_fields:
                     # Upload new images
                     for image in self.cleaned_data.get(field_name, []):
-                        if isinstance(image, int):
+                        # Existing image
+                        if isinstance(image, models.UserImage):
+                            imageObject = image
+                        elif isinstance(image, int):
                             imageObject = models.UserImage.objects.get(id=image)
                         else:
                             imageObject = models.UserImage.objects.create(
